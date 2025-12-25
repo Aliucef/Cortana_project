@@ -1,0 +1,77 @@
+{
+  "exercises": [
+    {
+      "name": "Dumbbell Squat",
+      "category": "legs",
+      "equipment": "dumbbells",
+      "difficulty": "beginner",
+      "content": "**How to do Dumbbell Squats:**\n\n1. **Starting Position:** Stand with feet shoulder-width apart, hold dumbbells at your sides or at shoulder height\n2. **Movement:** Push hips back, bend knees to lower down, keep chest up and core tight\n3. **Depth:** Go down until thighs are parallel to ground (or as comfortable)\n4. **Return:** Drive through heels to stand back up, squeeze glutes at top\n\n**Common Mistakes:**\n- Knees caving inward - keep them aligned with toes\n- Leaning too far forward - keep chest up\n- Rising on toes - keep weight in heels\n\n**Knee-Safe Modifications:**\n- Box squats: Sit back to a box to control depth\n- Goblet squats: Hold dumbbell at chest, easier on knees\n- Limit depth: Don't go below parallel if knee hurts\n- Wider stance: Reduces knee stress"
+    },
+    {
+      "name": "Push-ups",
+      "category": "chest",
+      "equipment": "bodyweight",
+      "difficulty": "beginner",
+      "content": "**How to do Push-ups:**\n\n1. **Starting Position:** Plank position, hands slightly wider than shoulders, body straight from head to heels\n2. **Descent:** Bend elbows to lower chest toward ground, elbows at 45-degree angle\n3. **Bottom:** Lower until chest nearly touches ground\n4. **Push Up:** Press through hands to return to start\n\n**Progressions:**\n- **Easier:** Wall push-ups → Incline push-ups → Knee push-ups → Full push-ups\n- **Harder:** Decline push-ups → Diamond push-ups → One-arm push-ups\n\n**Common Mistakes:**\n- Sagging hips - keep core tight\n- Flaring elbows out - keep at 45 degrees\n- Not going deep enough - chest should nearly touch floor"
+    },
+    {
+      "name": "Dumbbell Row",
+      "category": "back",
+      "equipment": "dumbbells",
+      "difficulty": "beginner",
+      "content": "**How to do Dumbbell Rows:**\n\n1. **Starting Position:** Hinge forward at hips, support with one hand on bench, dumbbell in other hand hanging down\n2. **Pull:** Drive elbow back and up, pulling dumbbell toward hip\n3. **Squeeze:** Squeeze shoulder blade at top\n4. **Lower:** Control descent back to start\n\n**Tips:**\n- Pull with elbow, not hand\n- Keep back flat, don't rotate torso\n- Full range of motion - stretch at bottom, squeeze at top\n\n**Variations:**\n- Bent-over row: Both arms at once\n- Chest-supported row: Less lower back stress"
+    },
+    {
+      "name": "Dumbbell Shoulder Press",
+      "category": "shoulders",
+      "equipment": "dumbbells",
+      "difficulty": "intermediate",
+      "content": "**How to do Dumbbell Shoulder Press:**\n\n1. **Starting Position:** Sit or stand, dumbbells at shoulder height, palms forward\n2. **Press:** Push dumbbells straight overhead until arms fully extended\n3. **Top:** Dumbbells should be close together overhead\n4. **Lower:** Control descent back to shoulders\n\n**Common Mistakes:**\n- Arching lower back - keep core tight\n- Pressing forward instead of up - straight overhead\n- Locking elbows hard - soft lockout at top\n\n**Shoulder-Safe Tips:**\n- Don't go too heavy - control is key\n- Full range of motion\n- Neutral grip (palms facing) is easier on shoulders"
+    },
+    {
+      "name": "Plank",
+      "category": "core",
+      "equipment": "bodyweight",
+      "difficulty": "beginner",
+      "content": "**How to do Planks:**\n\n1. **Starting Position:** Forearms on ground, elbows under shoulders, body straight from head to heels\n2. **Hold:** Maintain position, squeeze core and glutes\n3. **Breathing:** Breathe normally, don't hold breath\n\n**Key Points:**\n- Body in straight line - don't let hips sag or pike up\n- Squeeze glutes and core tight\n- Look at floor to keep neck neutral\n\n**Progressions:**\n- Start with 20-30 seconds\n- Build to 60 seconds\n- Add variations: side planks, plank shoulder taps\n\n**Common Mistakes:**\n- Sagging hips - hardest mistake to avoid\n- Holding breath - breathe normally\n- Hiking hips too high - straight line"
+    },
+    {
+      "name": "Lunges",
+      "category": "legs",
+      "equipment": "bodyweight",
+      "difficulty": "beginner",
+      "content": "**How to do Lunges:**\n\n1. **Starting Position:** Stand tall, feet hip-width apart\n2. **Step Forward:** Take big step forward with one leg\n3. **Lower:** Drop back knee toward ground, front thigh parallel\n4. **Rise:** Push through front heel to return to start\n\n**Knee-Safe Modifications:**\n- Shorter step: Reduces knee stress\n- Reverse lunges: Step back instead of forward (easier on knees)\n- Split squats: Keep feet in lunge position, just go up and down\n\n**Common Mistakes:**\n- Front knee past toes - step further forward\n- Leaning forward - keep torso upright\n- Back knee slamming down - control the descent"
+    },
+    {
+      "name": "Deadlifts",
+      "category": "back",
+      "equipment": "barbell",
+      "difficulty": "advanced",
+      "content": "**How to do Deadlifts:**\n\n1. **Setup:** Barbell over mid-foot, feet hip-width, shins close to bar\n2. **Grip:** Reach down, grip bar just outside legs\n3. **Position:** Chest up, back flat, hips between knees and shoulders\n4. **Pull:** Drive through heels, extend hips and knees together\n5. **Lockout:** Stand tall, squeeze glutes\n6. **Lower:** Push hips back, bend knees once bar passes them\n\n**Safety Tips:**\n- Keep back flat - never round lower back\n- Bar stays close to body throughout\n- Drive with legs, not just pulling with back\n- Use lighter weight until form is perfect\n\n**Common Mistakes:**\n- Rounding back - most dangerous\n- Bar drifting away from body\n- Not fully locking out at top"
+    }
+  ],
+  "injury_guides": [
+    {
+      "injury": "bad knee",
+      "content": "**Training with Knee Issues:**\n\n**Exercises to Avoid:**\n- Deep squats below parallel\n- Lunges (especially forward lunges)\n- Leg extensions (high shear force on knee)\n- Box jumps or plyometrics\n\n**Safe Alternatives:**\n- Box squats (controlled depth)\n- Goblet squats (easier on knees)\n- Reverse lunges or split squats\n- Leg press with limited range\n- Step-ups with low platform\n\n**General Tips:**\n- Stop if you feel pain (not just discomfort)\n- Focus on controlled movements\n- Strengthen muscles around knee (quads, hamstrings)\n- Consider swimming or cycling for cardio\n\n**When to See a Doctor:**\n- Sharp, sudden pain\n- Swelling that doesn't go down\n- Knee giving out or locking\n- Pain that persists more than a few days"
+    },
+    {
+      "injury": "lower back pain",
+      "content": "**Training with Lower Back Issues:**\n\n**Exercises to Modify:**\n- Deadlifts: Use lighter weight or skip\n- Good mornings: Avoid if painful\n- Bent-over rows: Try chest-supported instead\n- Overhead press: Seated with back support\n\n**Safe Alternatives:**\n- Hex bar deadlifts (more upright)\n- Romanian deadlifts (lighter, focus on hamstrings)\n- Cable rows (chest-supported)\n- Leg press instead of squats\n\n**Core Strengthening:**\n- Planks (not crunches)\n- Dead bugs\n- Bird dogs\n- McGill big 3\n\n**General Tips:**\n- Neutral spine always\n- Engage core before every lift\n- Don't round back under load\n- Stretch hip flexors regularly"
+    },
+    {
+      "injury": "shoulder pain",
+      "content": "**Training with Shoulder Issues:**\n\n**Exercises to Modify:**\n- Overhead press: Reduce range or use neutral grip\n- Bench press: Use dumbbells, don't go too deep\n- Dips: Avoid or use limited range\n- Behind-neck press: Never do these\n\n**Safe Alternatives:**\n- Landmine press (easier on shoulders)\n- Floor press (limits range)\n- Incline press (less stress than flat)\n- Face pulls (strengthens rear delts)\n\n**Shoulder Health:**\n- External rotation exercises\n- Band pull-aparts daily\n- Stretch pecs and front delts\n- Strengthen rotator cuff\n\n**Red Flags:**\n- Sharp pain during movement\n- Pain that doesn't improve with rest\n- Weakness or instability\n- Night pain"
+    }
+  ],
+  "nutrition_guides": [
+    {
+      "topic": "fat loss nutrition",
+      "content": "**Nutrition for Fat Loss:**\n\n**Calorie Deficit:**\n- Eat 300-500 calories below maintenance\n- Don't go too aggressive (no more than 1% bodyweight loss per week)\n- Track calories for accuracy\n\n**Protein Priority:**\n- 0.8-1g per pound of bodyweight\n- Preserves muscle during fat loss\n- Most satiating macronutrient\n- Examples: chicken, fish, eggs, Greek yogurt, protein powder\n\n**Meal Timing:**\n- Eat protein at every meal\n- Pre-workout: Carbs for energy (1-2 hours before)\n- Post-workout: Protein + carbs for recovery\n\n**Hydration:**\n- Drink 0.5-1 oz per pound bodyweight\n- More if exercising or hot weather\n\n**Common Mistakes:**\n- Cutting calories too low (slows metabolism)\n- Not eating enough protein (lose muscle)\n- Eliminating entire food groups (unsustainable)\n- Not tracking accurately"
+    },
+    {
+      "topic": "muscle gain nutrition",
+      "content": "**Nutrition for Muscle Gain:**\n\n**Calorie Surplus:**\n- Eat 200-400 calories above maintenance\n- Slow, controlled gain (0.5-1 lb per week)\n- Too fast = more fat gain\n\n**Protein:**\n- 0.8-1g per pound bodyweight\n- Spread throughout day\n- Within 2 hours post-workout\n\n**Carbs:**\n- Fuel for workouts\n- 2-3g per pound bodyweight\n- Time around workouts\n\n**Fats:**\n- Don't neglect (hormones need fat)\n- 0.3-0.5g per pound bodyweight\n\n**Meal Frequency:**\n- 3-5 meals per day\n- Protein at each meal\n- Pre and post-workout nutrition matters most\n\n**Supplements:**\n- Creatine (5g daily)\n- Protein powder (if needed to hit goals)\n- Multi-vitamin (cover bases)"
+    }
+  ]
+}

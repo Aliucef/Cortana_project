@@ -1,0 +1,9 @@
+# RAG System Dependencies
+# Vector embeddings and similarity search
+sentence-transformers>=2.0.0  # For generating embeddings
+faiss-cpu>=1.12.0             # Facebook AI Similarity Search (CPU version)
+
+# Text processing (optional - for future document ingestion)
+pypdf>=3.0.0                  # For reading PDF documents
+python-docx>=1.0.0            # For reading Word documents
+markdown>=3.0.0               # For processing markdown files
