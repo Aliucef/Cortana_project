@@ -79,6 +79,7 @@ export interface CategoryGoal {
   category: string;
   goal_amount: number;
   period: "weekly" | "monthly";
+  alert_threshold: number;
   created_at: string;
 }
 
@@ -206,7 +207,37 @@ export async function createBudget(data: {
 export async function getCategoryGoals(
   userId: number = DEFAULT_USER_ID
 ): Promise<CategoryGoal[]> {
-  return apiCall(`/budget/category-goals/${userId}`);
+  return apiCall(`/budget/category-goal/${userId}`);
+}
+
+/**
+ * Create or update category goal
+ */
+export async function createCategoryGoal(data: {
+  category: string;
+  goal_amount: number;
+  period: "weekly" | "monthly";
+  alert_threshold?: number;
+}): Promise<CategoryGoal> {
+  return apiCall("/budget/category-goal", {
+    method: "POST",
+    body: JSON.stringify({
+      user_id: DEFAULT_USER_ID,
+      category: data.category,
+      goal_amount: data.goal_amount,
+      period: data.period,
+      alert_threshold: data.alert_threshold || 0.8,
+    }),
+  });
+}
+
+/**
+ * Delete category goal
+ */
+export async function deleteCategoryGoal(goalId: number): Promise<void> {
+  return apiCall(`/budget/category-goal/${goalId}`, {
+    method: "DELETE",
+  });
 }
 
 // ==================== HEALTH/WORKOUT API ====================

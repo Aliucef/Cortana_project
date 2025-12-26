@@ -11,7 +11,7 @@
 6. ✅ **Date Range Filter** - Filter transactions by custom date ranges (last week, last month, custom) (COMPLETED)
 
 ### Medium Priority
-7. ⏳ **Category Goals** - Set spending limits per category (e.g., max $500/month on food)
+7. ✅ **Category Goals** - Set spending limits per category (e.g., max $500/month on food) (COMPLETED)
 8. ⏳ **Search Transactions** - Search by description, category, or amount
 9. ⏳ **Recurring Transactions** - Auto-add monthly subscriptions, rent, salary
 10. ⏳ **Income Breakdown** - Pie chart showing income sources (like the expense breakdown)
@@ -27,9 +27,9 @@
 ---
 
 ## Progress Tracking
-- **Completed**: 6/16
+- **Completed**: 7/16
 - **In Progress**: 0/16
-- **Pending**: 10/16
+- **Pending**: 9/16
 
 ---
 

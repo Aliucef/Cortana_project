@@ -19,6 +19,8 @@ import {
   FileSpreadsheet,
   CalendarDays,
   X,
+  Target,
+  AlertCircle,
 } from "lucide-react";
 import {
   AreaChart,
@@ -43,15 +45,20 @@ import {
   addFinanceRecord,
   updateFinanceRecord,
   deleteFinanceRecord,
+  getCategoryGoals,
+  createCategoryGoal,
+  deleteCategoryGoal,
   type FinanceSummary,
   type FinanceRecord,
   type Budget,
+  type CategoryGoal,
 } from "@/lib/api";
 
 export default function FinancePage() {
   const [summary, setSummary] = useState<FinanceSummary | null>(null);
   const [records, setRecords] = useState<FinanceRecord[]>([]);
   const [budget, setBudget] = useState<Budget | null>(null);
+  const [categoryGoals, setCategoryGoals] = useState<CategoryGoal[]>([]);
   const [period, setPeriod] = useState<"weekly" | "monthly" | "custom">("monthly");
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -62,6 +69,7 @@ export default function FinancePage() {
   const [deleting, setDeleting] = useState(false);
   const [editingRecord, setEditingRecord] = useState<FinanceRecord | null>(null);
   const [showBudgetModal, setShowBudgetModal] = useState(false);
+  const [showCategoryGoalModal, setShowCategoryGoalModal] = useState(false);
 
   // Date range state
   const [customStartDate, setCustomStartDate] = useState("");
@@ -83,6 +91,14 @@ export default function FinancePage() {
     period: "monthly" as "weekly" | "monthly",
   });
 
+  // Category goal form state
+  const [categoryGoalFormData, setCategoryGoalFormData] = useState({
+    category: "",
+    goal_amount: "",
+    period: "monthly" as "weekly" | "monthly",
+    alert_threshold: "80",
+  });
+
   useEffect(() => {
     loadData();
   }, [period, customStartDate, customEndDate]);
@@ -90,7 +106,7 @@ export default function FinancePage() {
   async function loadData() {
     setLoading(true);
     try {
-      const [summaryData, recordsData, budgetData] = await Promise.all([
+      const [summaryData, recordsData, budgetData, goalsData] = await Promise.all([
         getFinanceSummary(
           1,
           period,
@@ -99,10 +115,12 @@ export default function FinancePage() {
         ),
         getFinanceRecords(1),
         getBudget(1),
+        getCategoryGoals(1),
       ]);
       setSummary(summaryData);
       setRecords(recordsData);
       setBudget(budgetData);
+      setCategoryGoals(goalsData);
     } catch (error) {
       console.error("Failed to load finance data:", error);
     } finally {
@@ -270,6 +288,61 @@ export default function FinancePage() {
       });
     }
     setShowBudgetModal(true);
+  }
+
+  async function handleCategoryGoalSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (submitting) return;
+    setSubmitting(true);
+
+    try {
+      await createCategoryGoal({
+        category: categoryGoalFormData.category,
+        goal_amount: parseFloat(categoryGoalFormData.goal_amount),
+        period: categoryGoalFormData.period,
+        alert_threshold: parseFloat(categoryGoalFormData.alert_threshold) / 100,
+      });
+
+      // Close modal and reset form
+      setShowCategoryGoalModal(false);
+      setCategoryGoalFormData({
+        category: "",
+        goal_amount: "",
+        period: "monthly",
+        alert_threshold: "80",
+      });
+
+      // Show success notification
+      setSuccessMessage({ title: "Category Goal Set!", subtitle: "Spending limit created successfully" });
+      setShowSuccessToast(true);
+      setTimeout(() => setShowSuccessToast(false), 3000);
+
+      // Reload data
+      loadData();
+    } catch (error) {
+      console.error("Failed to set category goal:", error);
+      alert("Failed to set category goal. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleDeleteCategoryGoal(goalId: number) {
+    try {
+      await deleteCategoryGoal(goalId);
+
+      // Show success notification
+      setSuccessMessage({ title: "Goal Deleted!", subtitle: "Category goal removed successfully" });
+      setShowSuccessToast(true);
+      setTimeout(() => setShowSuccessToast(false), 3000);
+
+      // Reload data
+      loadData();
+    } catch (error) {
+      console.error("Failed to delete category goal:", error);
+      alert("Failed to delete category goal. Please try again.");
+    }
   }
 
   // Helper function to apply custom date range
@@ -729,6 +802,137 @@ export default function FinancePage() {
           </motion.div>
         </div>
 
+        {/* Category Goals Section */}
+        {categoryGoals.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="bg-white border border-gray-200 rounded-xl p-6 mb-8"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gray-100 rounded-lg">
+                  <Target className="w-5 h-5 text-gray-700" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Category Spending Goals
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowCategoryGoalModal(true)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg transition-all"
+              >
+                Add Goal
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {categoryGoals.map((goal) => {
+                const spent = summary?.category_breakdown[goal.category] || 0;
+                const progress = (spent / goal.goal_amount) * 100;
+                const isWarning = progress >= goal.alert_threshold * 100;
+                const isOverBudget = progress >= 100;
+
+                return (
+                  <div
+                    key={goal.id}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      isOverBudget
+                        ? "border-rose-200 bg-rose-50"
+                        : isWarning
+                        ? "border-amber-200 bg-amber-50"
+                        : "border-gray-100 bg-gray-50"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h4 className="font-semibold text-gray-900">{goal.category}</h4>
+                        <p className="text-sm text-gray-500">{goal.period}ly limit</p>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteCategoryGoal(goal.id)}
+                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">
+                          ${spent.toFixed(2)} of ${goal.goal_amount.toFixed(2)}
+                        </span>
+                        <span
+                          className={`font-semibold ${
+                            isOverBudget
+                              ? "text-rose-600"
+                              : isWarning
+                              ? "text-amber-600"
+                              : "text-emerald-600"
+                          }`}
+                        >
+                          {progress.toFixed(0)}%
+                        </span>
+                      </div>
+
+                      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                        <div
+                          className={`h-2 rounded-full transition-all ${
+                            isOverBudget
+                              ? "bg-rose-500"
+                              : isWarning
+                              ? "bg-amber-500"
+                              : "bg-emerald-500"
+                          }`}
+                          style={{ width: `${Math.min(progress, 100)}%` }}
+                        />
+                      </div>
+
+                      {isWarning && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <AlertCircle className="w-4 h-4 text-amber-600" />
+                          <span className="text-xs text-amber-700">
+                            {isOverBudget ? "Over budget!" : "Approaching limit"}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Add Category Goal Button (when no goals exist) */}
+        {categoryGoals.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-8 mb-8 text-center"
+          >
+            <div className="max-w-md mx-auto">
+              <div className="p-3 bg-gray-100 rounded-full w-fit mx-auto mb-4">
+                <Target className="w-6 h-6 text-gray-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Set Category Spending Goals
+              </h3>
+              <p className="text-gray-500 mb-4">
+                Track your spending per category and get alerts when approaching limits
+              </p>
+              <button
+                onClick={() => setShowCategoryGoalModal(true)}
+                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all"
+              >
+                Create Your First Goal
+              </button>
+            </div>
+          </motion.div>
+        )}
+
         {/* Recent Transactions - Glass card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -1117,6 +1321,159 @@ export default function FinancePage() {
                     </svg>
                   )}
                   {submitting ? "Processing & updating AI..." : (budget ? "Update Budget" : "Set Budget")}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Category Goal Modal */}
+      {showCategoryGoalModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+          >
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Set Category Goal
+            </h2>
+
+            <form onSubmit={handleCategoryGoalSubmit} className="space-y-4">
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Category
+                </label>
+                <select
+                  required
+                  value={categoryGoalFormData.category}
+                  onChange={(e) =>
+                    setCategoryGoalFormData({ ...categoryGoalFormData, category: e.target.value })
+                  }
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                >
+                  <option value="">Select category</option>
+                  <option value="Food">Food</option>
+                  <option value="Transportation">Transportation</option>
+                  <option value="Shopping">Shopping</option>
+                  <option value="Utilities">Utilities</option>
+                  <option value="Healthcare">Healthcare</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Groceries">Groceries</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              {/* Goal Amount */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Spending Limit
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  required
+                  value={categoryGoalFormData.goal_amount}
+                  onChange={(e) =>
+                    setCategoryGoalFormData({ ...categoryGoalFormData, goal_amount: e.target.value })
+                  }
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                  placeholder="0.00"
+                />
+              </div>
+
+              {/* Period Toggle */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Period
+                </label>
+                <div className="flex gap-2 bg-gray-100 p-1.5 rounded-2xl">
+                  <button
+                    type="button"
+                    onClick={() => setCategoryGoalFormData({ ...categoryGoalFormData, period: "weekly" })}
+                    className={`flex-1 py-2.5 rounded-xl font-semibold transition-all ${
+                      categoryGoalFormData.period === "weekly"
+                        ? "bg-white text-blue-600 shadow-md"
+                        : "text-gray-600"
+                    }`}
+                  >
+                    Weekly
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCategoryGoalFormData({ ...categoryGoalFormData, period: "monthly" })}
+                    className={`flex-1 py-2.5 rounded-xl font-semibold transition-all ${
+                      categoryGoalFormData.period === "monthly"
+                        ? "bg-white text-blue-600 shadow-md"
+                        : "text-gray-600"
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                </div>
+              </div>
+
+              {/* Alert Threshold */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Alert at {categoryGoalFormData.alert_threshold}% spent
+                </label>
+                <input
+                  type="range"
+                  min="50"
+                  max="100"
+                  step="5"
+                  value={categoryGoalFormData.alert_threshold}
+                  onChange={(e) =>
+                    setCategoryGoalFormData({ ...categoryGoalFormData, alert_threshold: e.target.value })
+                  }
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>50%</span>
+                  <span>75%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+
+              {/* Info Message */}
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <p className="text-sm text-blue-800">
+                  You'll receive alerts when your spending in this category reaches {categoryGoalFormData.alert_threshold}% of your goal.
+                </p>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCategoryGoalModal(false);
+                    setCategoryGoalFormData({
+                      category: "",
+                      goal_amount: "",
+                      period: "monthly",
+                      alert_threshold: "80",
+                    });
+                  }}
+                  className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-blue-400 disabled:to-indigo-400 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-lg shadow-blue-200 transition-all hover:scale-105 disabled:hover:scale-100 flex items-center justify-center gap-2"
+                >
+                  {submitting && (
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  )}
+                  {submitting ? "Setting Goal..." : "Set Goal"}
                 </button>
               </div>
             </form>
