@@ -1,10 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from config.database import get_db
 from models.finance import FinanceRecord, TransactionType
 from api.schemas import FinanceRecordCreate, FinanceRecordResponse
 from typing import List
+from services.report_export import ReportExporter
+from datetime import datetime
 
 router = APIRouter(prefix="/finance", tags=["finance"])
 
@@ -234,3 +237,231 @@ def delete_finance_record(record_id: int, db: Session = Depends(get_db)):
             logging.warning(f"Failed to auto-vectorize after deletion: {e}")
 
     return None
+
+
+@router.get("/export/{user_id}/pdf")
+def export_pdf_report(
+    user_id: int,
+    period: str = "monthly",
+    db: Session = Depends(get_db)
+):
+    """Export finance report as PDF"""
+    import logging
+    logger = logging.getLogger(__name__)
+
+    try:
+        # Get summary data
+        from datetime import datetime, timedelta
+
+        now = datetime.now()
+        if period == "weekly":
+            start_date = now - timedelta(days=7)
+        elif period == "monthly":
+            start_date = now - timedelta(days=30)
+        else:
+            start_date = None
+
+        # Build filters
+        income_filters = [
+            FinanceRecord.user_id == user_id,
+            FinanceRecord.transaction_type == TransactionType.INCOME
+        ]
+        expense_filters = [
+            FinanceRecord.user_id == user_id,
+            FinanceRecord.transaction_type == TransactionType.EXPENSE
+        ]
+
+        if start_date:
+            income_filters.append(FinanceRecord.transaction_date >= start_date)
+            expense_filters.append(FinanceRecord.transaction_date >= start_date)
+
+        # Get totals
+        total_income = (
+            db.query(func.sum(FinanceRecord.amount))
+            .filter(*income_filters)
+            .scalar() or 0.0
+        )
+
+        total_expenses = (
+            db.query(func.sum(FinanceRecord.amount))
+            .filter(*expense_filters)
+            .scalar() or 0.0
+        )
+
+        # Get expenses by category
+        expenses_by_category_raw = (
+            db.query(
+                FinanceRecord.category,
+                func.sum(FinanceRecord.amount).label("total")
+            )
+            .filter(*expense_filters)
+            .group_by(FinanceRecord.category)
+            .all()
+        )
+
+        expenses_by_category = {cat: float(amt) for cat, amt in expenses_by_category_raw}
+
+        # Get recent transactions
+        recent_transactions_raw = (
+            db.query(FinanceRecord)
+            .filter(FinanceRecord.user_id == user_id)
+            .order_by(FinanceRecord.transaction_date.desc())
+            .limit(20)
+            .all()
+        )
+
+        recent_transactions = [
+            {
+                "date": t.transaction_date,
+                "description": t.description or f"{t.transaction_type.value} - {t.category}",
+                "category": t.category,
+                "amount": float(t.amount),
+                "type": t.transaction_type.value
+            }
+            for t in recent_transactions_raw
+        ]
+
+        # Prepare summary data
+        summary_data = {
+            "total_income": float(total_income),
+            "total_expenses": float(total_expenses),
+            "net_balance": float(total_income - total_expenses),
+            "expenses_by_category": expenses_by_category,
+            "recent_transactions": recent_transactions
+        }
+
+        # Generate PDF
+        exporter = ReportExporter()
+        pdf_path = exporter.generate_pdf_report(
+            summary_data=summary_data,
+            user_name=f"User {user_id}",
+            period=period
+        )
+
+        # Return file
+        return FileResponse(
+            path=pdf_path,
+            media_type="application/pdf",
+            filename=f"finance_report_{period}_{datetime.now().strftime('%Y%m%d')}.pdf"
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to generate PDF report: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate PDF report: {str(e)}"
+        )
+
+
+@router.get("/export/{user_id}/excel")
+def export_excel_report(
+    user_id: int,
+    period: str = "monthly",
+    db: Session = Depends(get_db)
+):
+    """Export finance report as Excel"""
+    import logging
+    logger = logging.getLogger(__name__)
+
+    try:
+        # Get summary data (same as PDF)
+        from datetime import datetime, timedelta
+
+        now = datetime.now()
+        if period == "weekly":
+            start_date = now - timedelta(days=7)
+        elif period == "monthly":
+            start_date = now - timedelta(days=30)
+        else:
+            start_date = None
+
+        # Build filters
+        income_filters = [
+            FinanceRecord.user_id == user_id,
+            FinanceRecord.transaction_type == TransactionType.INCOME
+        ]
+        expense_filters = [
+            FinanceRecord.user_id == user_id,
+            FinanceRecord.transaction_type == TransactionType.EXPENSE
+        ]
+
+        if start_date:
+            income_filters.append(FinanceRecord.transaction_date >= start_date)
+            expense_filters.append(FinanceRecord.transaction_date >= start_date)
+
+        # Get totals
+        total_income = (
+            db.query(func.sum(FinanceRecord.amount))
+            .filter(*income_filters)
+            .scalar() or 0.0
+        )
+
+        total_expenses = (
+            db.query(func.sum(FinanceRecord.amount))
+            .filter(*expense_filters)
+            .scalar() or 0.0
+        )
+
+        # Get expenses by category
+        expenses_by_category_raw = (
+            db.query(
+                FinanceRecord.category,
+                func.sum(FinanceRecord.amount).label("total")
+            )
+            .filter(*expense_filters)
+            .group_by(FinanceRecord.category)
+            .all()
+        )
+
+        expenses_by_category = {cat: float(amt) for cat, amt in expenses_by_category_raw}
+
+        # Get recent transactions
+        recent_transactions_raw = (
+            db.query(FinanceRecord)
+            .filter(FinanceRecord.user_id == user_id)
+            .order_by(FinanceRecord.transaction_date.desc())
+            .limit(100)
+            .all()
+        )
+
+        recent_transactions = [
+            {
+                "date": t.transaction_date,
+                "description": t.description or f"{t.transaction_type.value} - {t.category}",
+                "category": t.category,
+                "amount": float(t.amount),
+                "type": t.transaction_type.value
+            }
+            for t in recent_transactions_raw
+        ]
+
+        # Prepare summary data
+        summary_data = {
+            "total_income": float(total_income),
+            "total_expenses": float(total_expenses),
+            "net_balance": float(total_income - total_expenses),
+            "expenses_by_category": expenses_by_category,
+            "recent_transactions": recent_transactions
+        }
+
+        # Generate Excel
+        exporter = ReportExporter()
+        excel_path = exporter.generate_excel_report(
+            summary_data=summary_data,
+            user_name=f"User {user_id}",
+            period=period
+        )
+
+        # Return file
+        return FileResponse(
+            path=excel_path,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            filename=f"finance_report_{period}_{datetime.now().strftime('%Y%m%d')}.xlsx"
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to generate Excel report: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate Excel report: {str(e)}"
+        )

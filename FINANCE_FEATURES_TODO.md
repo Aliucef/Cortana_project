@@ -6,8 +6,8 @@
 1. ✅ **Add Transaction** - Modal form to add income/expense with date picker (COMPLETED)
 2. ✅ **Delete Transaction** - Allow users to remove incorrect entries (COMPLETED)
 3. ✅ **Edit Transaction** - Modify existing transactions (COMPLETED)
-4. ⏳ **Set/Edit Budget** - Add a modal to set monthly/weekly budget limits
-5. ⏳ **Export Reports** - Download finance data as PDF or Excel
+4. ✅ **Set/Edit Budget** - Add a modal to set monthly/weekly budget limits (COMPLETED)
+5. ✅ **Export Reports** - Download finance data as PDF or Excel (COMPLETED)
 6. ⏳ **Date Range Filter** - Filter transactions by custom date ranges (last week, last month, custom)
 
 ### Medium Priority
@@ -27,9 +27,9 @@
 ---
 
 ## Progress Tracking
-- **Completed**: 3/16
+- **Completed**: 5/16
 - **In Progress**: 0/16
-- **Pending**: 13/16
+- **Pending**: 11/16
 
 ---
 

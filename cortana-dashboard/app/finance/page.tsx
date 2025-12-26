@@ -14,6 +14,9 @@ import {
   ArrowDownRight,
   Trash2,
   Edit2,
+  Download,
+  FileText,
+  FileSpreadsheet,
 } from "lucide-react";
 import {
   AreaChart,
@@ -34,6 +37,7 @@ import {
   getFinanceSummary,
   getFinanceRecords,
   getBudget,
+  createBudget,
   addFinanceRecord,
   updateFinanceRecord,
   deleteFinanceRecord,
@@ -55,6 +59,7 @@ export default function FinancePage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [editingRecord, setEditingRecord] = useState<FinanceRecord | null>(null);
+  const [showBudgetModal, setShowBudgetModal] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -63,6 +68,12 @@ export default function FinancePage() {
     category: "",
     description: "",
     date: new Date().toISOString().split("T")[0],
+  });
+
+  // Budget form state
+  const [budgetFormData, setBudgetFormData] = useState({
+    amount: "",
+    period: "monthly" as "weekly" | "monthly",
   });
 
   useEffect(() => {
@@ -204,6 +215,51 @@ export default function FinancePage() {
     }
   }
 
+  async function handleBudgetSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (submitting) return;
+    setSubmitting(true);
+
+    try {
+      await createBudget({
+        total_budget: parseFloat(budgetFormData.amount),
+        period: budgetFormData.period,
+      });
+
+      // Close modal and reset form
+      setShowBudgetModal(false);
+      setBudgetFormData({
+        amount: "",
+        period: "monthly",
+      });
+
+      // Show success notification
+      setSuccessMessage({ title: "Budget Set!", subtitle: "AI context updated successfully" });
+      setShowSuccessToast(true);
+      setTimeout(() => setShowSuccessToast(false), 3000);
+
+      // Reload data
+      loadData();
+    } catch (error) {
+      console.error("Failed to set budget:", error);
+      alert("Failed to set budget. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function handleEditBudget() {
+    // Pre-fill form with existing budget
+    if (budget) {
+      setBudgetFormData({
+        amount: budget.amount.toString(),
+        period: budget.period,
+      });
+    }
+    setShowBudgetModal(true);
+  }
+
   // Calculate budget progress
   const budgetProgress = budget && summary
     ? (summary.total_expenses / budget.amount) * 100
@@ -286,28 +342,51 @@ export default function FinancePage() {
           </h1>
           <p className="text-gray-600">Track your spending and manage your budget</p>
 
-          {/* Period Selector - Apple style */}
-          <div className="flex gap-2 mt-6 bg-white/60 backdrop-blur-xl p-1.5 rounded-2xl w-fit border border-gray-200/50 shadow-sm">
-            <button
-              onClick={() => setPeriod("weekly")}
-              className={`px-6 py-2.5 rounded-xl font-medium transition-all ${
-                period === "weekly"
-                  ? "bg-white text-blue-600 shadow-md"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              Weekly
-            </button>
-            <button
-              onClick={() => setPeriod("monthly")}
-              className={`px-6 py-2.5 rounded-xl font-medium transition-all ${
-                period === "monthly"
-                  ? "bg-white text-blue-600 shadow-md"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              Monthly
-            </button>
+          {/* Period Selector & Export Buttons */}
+          <div className="flex items-center gap-4 mt-6 flex-wrap">
+            {/* Period Selector - Apple style */}
+            <div className="flex gap-2 bg-white/60 backdrop-blur-xl p-1.5 rounded-2xl border border-gray-200/50 shadow-sm">
+              <button
+                onClick={() => setPeriod("weekly")}
+                className={`px-6 py-2.5 rounded-xl font-medium transition-all ${
+                  period === "weekly"
+                    ? "bg-white text-blue-600 shadow-md"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                Weekly
+              </button>
+              <button
+                onClick={() => setPeriod("monthly")}
+                className={`px-6 py-2.5 rounded-xl font-medium transition-all ${
+                  period === "monthly"
+                    ? "bg-white text-blue-600 shadow-md"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                Monthly
+              </button>
+            </div>
+
+            {/* Export Buttons */}
+            <div className="flex gap-2">
+              <a
+                href={`http://localhost:8000/finance/export/1/pdf?period=${period}`}
+                download
+                className="flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-all shadow-md hover:shadow-lg"
+              >
+                <FileText className="w-4 h-4" />
+                Export PDF
+              </a>
+              <a
+                href={`http://localhost:8000/finance/export/1/excel?period=${period}`}
+                download
+                className="flex items-center gap-2 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl transition-all shadow-md hover:shadow-lg"
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                Export Excel
+              </a>
+            </div>
           </div>
         </motion.div>
 
@@ -386,17 +465,22 @@ export default function FinancePage() {
             transition={{ delay: 0.4, type: "spring", stiffness: 300 }}
             className="relative overflow-hidden bg-gradient-to-br from-purple-50 to-pink-50 backdrop-blur-xl border border-purple-200/50 rounded-3xl p-6 shadow-lg shadow-purple-100/50 hover:shadow-xl hover:shadow-purple-100/70 transition-all hover:scale-105"
           >
-            <div className="flex items-start justify-between mb-4">
+            <div className="flex items-start justify-between mb-4 relative z-10">
               <div className="p-3 bg-purple-500/10 rounded-2xl backdrop-blur-sm">
                 <DollarSign className="w-6 h-6 text-purple-600" />
               </div>
-              <div className="px-3 py-1 bg-purple-100 rounded-full">
-                <span className="text-purple-700 text-xs font-semibold">Budget</span>
-              </div>
+              <button
+                onClick={budget ? handleEditBudget : () => setShowBudgetModal(true)}
+                className="px-3 py-1 bg-purple-100 hover:bg-purple-200 rounded-full transition-all cursor-pointer"
+              >
+                <span className="text-purple-700 text-xs font-semibold">
+                  {budget ? "Edit" : "Set Budget"}
+                </span>
+              </button>
             </div>
             <h3 className="text-gray-600 text-sm font-medium mb-1">Remaining</h3>
             <p className="text-3xl font-bold text-gray-900">
-              ${budgetRemaining.toFixed(2)}
+              {budget ? `$${budgetRemaining.toFixed(2)}` : "No budget set"}
             </p>
             {budget && (
               <div className="mt-3">
@@ -825,6 +909,109 @@ export default function FinancePage() {
                 {deleting ? "Deleting..." : "Delete"}
               </button>
             </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Budget Modal */}
+      {showBudgetModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+          >
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              {budget ? "Edit Budget" : "Set Budget"}
+            </h2>
+
+            <form onSubmit={handleBudgetSubmit} className="space-y-4">
+              {/* Amount */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Budget Amount
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  required
+                  value={budgetFormData.amount}
+                  onChange={(e) =>
+                    setBudgetFormData({ ...budgetFormData, amount: e.target.value })
+                  }
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                  placeholder="0.00"
+                />
+              </div>
+
+              {/* Period Toggle */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Period
+                </label>
+                <div className="flex gap-2 bg-gray-100 p-1.5 rounded-2xl">
+                  <button
+                    type="button"
+                    onClick={() => setBudgetFormData({ ...budgetFormData, period: "weekly" })}
+                    className={`flex-1 py-2.5 rounded-xl font-semibold transition-all ${
+                      budgetFormData.period === "weekly"
+                        ? "bg-white text-purple-600 shadow-md"
+                        : "text-gray-600"
+                    }`}
+                  >
+                    Weekly
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBudgetFormData({ ...budgetFormData, period: "monthly" })}
+                    className={`flex-1 py-2.5 rounded-xl font-semibold transition-all ${
+                      budgetFormData.period === "monthly"
+                        ? "bg-white text-purple-600 shadow-md"
+                        : "text-gray-600"
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                </div>
+              </div>
+
+              {/* Info Message */}
+              <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                <p className="text-sm text-purple-800">
+                  Your budget will be used to track spending limits and alert you when approaching the limit.
+                </p>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowBudgetModal(false);
+                    setBudgetFormData({
+                      amount: "",
+                      period: "monthly",
+                    });
+                  }}
+                  className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-purple-400 disabled:to-pink-400 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-lg shadow-purple-200 transition-all hover:scale-105 disabled:hover:scale-100 flex items-center justify-center gap-2"
+                >
+                  {submitting && (
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  )}
+                  {submitting ? "Processing & updating AI..." : (budget ? "Update Budget" : "Set Budget")}
+                </button>
+              </div>
+            </form>
           </motion.div>
         </div>
       )}
