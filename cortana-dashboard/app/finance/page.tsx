@@ -21,6 +21,7 @@ import {
   X,
   Target,
   AlertCircle,
+  Search,
 } from "lucide-react";
 import {
   AreaChart,
@@ -75,6 +76,9 @@ export default function FinancePage() {
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Form state
   const [formData, setFormData] = useState({
@@ -370,14 +374,28 @@ export default function FinancePage() {
     ? budget.amount - summary.total_expenses
     : 0;
 
-  // Filter records based on date range
+  // Filter records based on date range and search query
   const filteredRecords = records.filter((record) => {
+    // Date range filter
     if (period === "custom" && customStartDate && customEndDate) {
       const recordDate = new Date(record.transaction_date);
       const start = new Date(customStartDate);
       const end = new Date(customEndDate);
-      return recordDate >= start && recordDate <= end;
+      if (!(recordDate >= start && recordDate <= end)) {
+        return false;
+      }
     }
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const matchesDescription = record.description?.toLowerCase().includes(query);
+      const matchesCategory = record.category.toLowerCase().includes(query);
+      const matchesAmount = record.amount.toString().includes(query);
+
+      return matchesDescription || matchesCategory || matchesAmount;
+    }
+
     return true;
   });
 
@@ -940,21 +958,50 @@ export default function FinancePage() {
           transition={{ delay: 0.7, type: "spring", stiffness: 200 }}
           className="bg-white/60 backdrop-blur-xl border border-gray-200/50 rounded-3xl p-8 shadow-xl shadow-gray-200/50"
         >
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
             <h3 className="text-xl font-bold text-gray-900">Recent Transactions</h3>
-            <button className="p-2.5 bg-gradient-to-br from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-xl transition-all hover:scale-105 shadow-lg shadow-blue-200/50">
-              <Plus className="w-5 h-5" />
-            </button>
-          </div>
-          <div className="space-y-3">
-            {filteredRecords.slice(0, 8).map((record, index) => (
-              <motion.div
-                key={record.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.8 + index * 0.05, type: "spring", stiffness: 300 }}
-                className="flex items-center justify-between p-4 bg-white/80 backdrop-blur-sm rounded-2xl hover:bg-white transition-all border border-gray-100/50 hover:shadow-md"
+
+            <div className="flex items-center gap-3">
+              {/* Search Input */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search transactions..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5 text-gray-400" />
+                  </button>
+                )}
+              </div>
+
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="p-2.5 bg-gradient-to-br from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-xl transition-all hover:scale-105 shadow-lg shadow-blue-200/50"
               >
+                <Plus className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Transaction List or Empty State */}
+          {filteredRecords.length > 0 ? (
+            <div className="space-y-3">
+              {filteredRecords.slice(0, 8).map((record, index) => (
+                <motion.div
+                  key={record.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.8 + index * 0.05, type: "spring", stiffness: 300 }}
+                  className="flex items-center justify-between p-4 bg-white/80 backdrop-blur-sm rounded-2xl hover:bg-white transition-all border border-gray-100/50 hover:shadow-md"
+                >
                 <div className="flex items-center gap-4">
                   <div
                     className={`p-3 rounded-xl ${
@@ -1003,7 +1050,26 @@ export default function FinancePage() {
                 </div>
               </motion.div>
             ))}
-          </div>
+            </div>
+          ) : (
+            <div className="py-12 text-center">
+              <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <h4 className="text-lg font-semibold text-gray-900 mb-2">No transactions found</h4>
+              <p className="text-gray-500">
+                {searchQuery
+                  ? `No results matching "${searchQuery}"`
+                  : "No transactions to display"}
+              </p>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg transition-all"
+                >
+                  Clear Search
+                </button>
+              )}
+            </div>
+          )}
         </motion.div>
       </div>
 

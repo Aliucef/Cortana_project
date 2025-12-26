@@ -12,7 +12,7 @@
 
 ### Medium Priority
 7. ✅ **Category Goals** - Set spending limits per category (e.g., max $500/month on food) (COMPLETED)
-8. ⏳ **Search Transactions** - Search by description, category, or amount
+8. ✅ **Search Transactions** - Search by description, category, or amount (COMPLETED)
 9. ⏳ **Recurring Transactions** - Auto-add monthly subscriptions, rent, salary
 10. ⏳ **Income Breakdown** - Pie chart showing income sources (like the expense breakdown)
 11. ⏳ **Trend Alerts** - Notifications when spending exceeds budget
@@ -27,9 +27,9 @@
 ---
 
 ## Progress Tracking
-- **Completed**: 7/16
+- **Completed**: 8/16
 - **In Progress**: 0/16
-- **Pending**: 9/16
+- **Pending**: 8/16
 
 ---
 
