@@ -13,6 +13,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Trash2,
+  Edit2,
 } from "lucide-react";
 import {
   AreaChart,
@@ -34,6 +35,7 @@ import {
   getFinanceRecords,
   getBudget,
   addFinanceRecord,
+  updateFinanceRecord,
   deleteFinanceRecord,
   type FinanceSummary,
   type FinanceRecord,
@@ -52,6 +54,7 @@ export default function FinancePage() {
   const [successMessage, setSuccessMessage] = useState({ title: "", subtitle: "" });
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<FinanceRecord | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -120,6 +123,59 @@ export default function FinancePage() {
     } catch (error) {
       console.error("Failed to add transaction:", error);
       alert("Failed to add transaction. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function handleEdit(record: FinanceRecord) {
+    // Pre-fill form with existing data
+    setFormData({
+      type: record.transaction_type,
+      amount: record.amount.toString(),
+      category: record.category,
+      description: record.description || "",
+      date: new Date(record.transaction_date).toISOString().split("T")[0],
+    });
+    setEditingRecord(record);
+  }
+
+  async function handleUpdate(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (!editingRecord || submitting) return;
+
+    setSubmitting(true);
+
+    try {
+      await updateFinanceRecord(editingRecord.id, {
+        type: formData.type,
+        amount: parseFloat(formData.amount),
+        category: formData.category,
+        description: formData.description,
+        date: new Date(formData.date).toISOString(),
+      });
+
+      // Close modal and reset
+      setEditingRecord(null);
+      setFormData({
+        type: "expense",
+        amount: "",
+        category: "",
+        description: "",
+        date: new Date().toISOString().split("T")[0],
+      });
+
+      // Show success notification
+      setSuccessMessage({ title: "Transaction Updated!", subtitle: "AI context updated successfully" });
+      setShowSuccessToast(true);
+      setTimeout(() => setShowSuccessToast(false), 3000);
+
+      // Reload data
+      loadData();
+    } catch (error) {
+      console.error("Failed to update transaction:", error);
+      alert("Failed to update transaction. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -537,6 +593,12 @@ export default function FinancePage() {
                     {record.amount.toFixed(2)}
                   </p>
                   <button
+                    onClick={() => handleEdit(record)}
+                    className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
                     onClick={() => setDeleteConfirmId(record.id)}
                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                   >
@@ -560,8 +622,8 @@ export default function FinancePage() {
         <Plus className="w-8 h-8" />
       </motion.button>
 
-      {/* Add Transaction Modal */}
-      {showAddModal && (
+      {/* Add/Edit Transaction Modal */}
+      {(showAddModal || editingRecord) && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -569,10 +631,10 @@ export default function FinancePage() {
             className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Add Transaction
+              {editingRecord ? "Edit Transaction" : "Add Transaction"}
             </h2>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={editingRecord ? handleUpdate : handleSubmit} className="space-y-4">
               {/* Type Toggle */}
               <div className="flex gap-2 bg-gray-100 p-1.5 rounded-2xl">
                 <button
@@ -689,7 +751,17 @@ export default function FinancePage() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setShowAddModal(false)}
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setEditingRecord(null);
+                    setFormData({
+                      type: "expense",
+                      amount: "",
+                      category: "",
+                      description: "",
+                      date: new Date().toISOString().split("T")[0],
+                    });
+                  }}
                   className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all"
                 >
                   Cancel
@@ -705,7 +777,7 @@ export default function FinancePage() {
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                   )}
-                  {submitting ? "Processing & updating AI..." : "Add Transaction"}
+                  {submitting ? "Processing & updating AI..." : (editingRecord ? "Update Transaction" : "Add Transaction")}
                 </button>
               </div>
             </form>

@@ -125,6 +125,32 @@ export async function addFinanceRecord(data: {
 }
 
 /**
+ * Update finance record
+ */
+export async function updateFinanceRecord(
+  recordId: number,
+  data: {
+    type: "income" | "expense";
+    amount: number;
+    category: string;
+    description?: string;
+    date?: string;
+  }
+): Promise<FinanceRecord> {
+  return apiCall(`/finance/${recordId}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      user_id: DEFAULT_USER_ID,
+      transaction_type: data.type,
+      transaction_date: data.date || new Date().toISOString(),
+      amount: data.amount,
+      category: data.category,
+      description: data.description,
+    }),
+  });
+}
+
+/**
  * Delete finance record
  */
 export async function deleteFinanceRecord(recordId: number): Promise<void> {

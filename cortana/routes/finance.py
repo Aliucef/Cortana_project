@@ -150,6 +150,55 @@ def get_finance_record(record_id: int, db: Session = Depends(get_db)):
     return record
 
 
+@router.put("/{record_id}", response_model=FinanceRecordResponse)
+def update_finance_record(
+    record_id: int,
+    record_update: FinanceRecordCreate,
+    db: Session = Depends(get_db)
+):
+    """Update a finance record"""
+    record = db.query(FinanceRecord).filter(FinanceRecord.id == record_id).first()
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Finance record not found"
+        )
+
+    # Update fields
+    record.amount = record_update.amount
+    record.transaction_type = record_update.transaction_type
+    record.category = record_update.category
+    record.description = record_update.description
+    record.transaction_date = record_update.transaction_date
+
+    db.commit()
+    db.refresh(record)
+
+    # Auto-vectorize: Update personal context after expense is edited
+    # This helps the AI stay aware of current spending patterns
+    import logging
+    logger = logging.getLogger(__name__)
+
+    logger.info(f"Transaction type after edit: {record.transaction_type}")
+
+    if record.transaction_type == TransactionType.EXPENSE:
+        logger.info(f"Starting auto-vectorization for edited expense (user {record.user_id})")
+        try:
+            from services.personal_context_service import PersonalContextService
+
+            personal_context = PersonalContextService(db, record.user_id)
+            # Regenerate expense insights with updated data
+            personal_context.generate_expense_insights(days=30)
+            logger.info(f"✅ Auto-vectorized after edit for user {record.user_id}")
+        except Exception as e:
+            # Don't fail the request if vectorization fails
+            logger.warning(f"❌ Failed to auto-vectorize after edit: {e}")
+    else:
+        logger.info(f"Skipping vectorization - transaction is income, not expense")
+
+    return record
+
+
 @router.delete("/{record_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_finance_record(record_id: int, db: Session = Depends(get_db)):
     """Delete a finance record"""
