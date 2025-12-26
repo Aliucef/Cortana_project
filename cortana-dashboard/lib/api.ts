@@ -28,6 +28,11 @@ async function apiCall<T>(
       throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
 
+    // Handle 204 No Content (e.g., DELETE requests)
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
     return await response.json();
   } catch (error) {
     console.error(`API call failed for ${endpoint}:`, error);
