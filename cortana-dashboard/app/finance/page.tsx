@@ -329,7 +329,7 @@ export default function FinancePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -337,20 +337,20 @@ export default function FinancePage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-semibold mb-2 text-gray-900">
             Finance
           </h1>
-          <p className="text-gray-600">Track your spending and manage your budget</p>
+          <p className="text-gray-500">Track your spending and manage your budget</p>
 
           {/* Period Selector & Export Buttons */}
-          <div className="flex items-center gap-4 mt-6 flex-wrap">
-            {/* Period Selector - Apple style */}
-            <div className="flex gap-2 bg-white/60 backdrop-blur-xl p-1.5 rounded-2xl border border-gray-200/50 shadow-sm">
+          <div className="flex items-center gap-3 mt-6 flex-wrap">
+            {/* Period Selector */}
+            <div className="flex gap-1 bg-gray-200 p-1 rounded-lg">
               <button
                 onClick={() => setPeriod("weekly")}
-                className={`px-6 py-2.5 rounded-xl font-medium transition-all ${
+                className={`px-5 py-2 rounded-md font-medium text-sm transition-all ${
                   period === "weekly"
-                    ? "bg-white text-blue-600 shadow-md"
+                    ? "bg-white text-gray-900 shadow-sm"
                     : "text-gray-600 hover:text-gray-900"
                 }`}
               >
@@ -358,9 +358,9 @@ export default function FinancePage() {
               </button>
               <button
                 onClick={() => setPeriod("monthly")}
-                className={`px-6 py-2.5 rounded-xl font-medium transition-all ${
+                className={`px-5 py-2 rounded-md font-medium text-sm transition-all ${
                   period === "monthly"
-                    ? "bg-white text-blue-600 shadow-md"
+                    ? "bg-white text-gray-900 shadow-sm"
                     : "text-gray-600 hover:text-gray-900"
                 }`}
               >
@@ -373,152 +373,140 @@ export default function FinancePage() {
               <a
                 href={`http://localhost:8000/finance/export/1/pdf?period=${period}`}
                 download
-                className="flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-all shadow-md hover:shadow-lg"
+                className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 font-medium text-sm rounded-lg border border-gray-200 transition-all"
               >
                 <FileText className="w-4 h-4" />
-                Export PDF
+                PDF
               </a>
               <a
                 href={`http://localhost:8000/finance/export/1/excel?period=${period}`}
                 download
-                className="flex items-center gap-2 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl transition-all shadow-md hover:shadow-lg"
+                className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 font-medium text-sm rounded-lg border border-gray-200 transition-all"
               >
                 <FileSpreadsheet className="w-4 h-4" />
-                Export Excel
+                Excel
               </a>
             </div>
           </div>
         </motion.div>
 
-        {/* Stats Cards - Bubbly glass design */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {/* Total Income */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ delay: 0.1, type: "spring", stiffness: 300 }}
-            className="relative overflow-hidden bg-gradient-to-br from-green-50 to-emerald-50 backdrop-blur-xl border border-green-200/50 rounded-3xl p-6 shadow-lg shadow-green-100/50 hover:shadow-xl hover:shadow-green-100/70 transition-all hover:scale-105"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow"
           >
             <div className="flex items-start justify-between mb-4">
-              <div className="p-3 bg-green-500/10 rounded-2xl backdrop-blur-sm">
-                <ArrowUpRight className="w-6 h-6 text-green-600" />
+              <div className="p-2.5 bg-emerald-50 rounded-lg">
+                <ArrowUpRight className="w-5 h-5 text-emerald-600" />
               </div>
-              <div className="px-3 py-1 bg-green-100 rounded-full">
-                <span className="text-green-700 text-xs font-semibold">Income</span>
-              </div>
+              <span className="text-xs text-gray-500 font-medium">INCOME</span>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Total Income</h3>
-            <p className="text-3xl font-bold text-gray-900">
+            <h3 className="text-sm text-gray-500 mb-1">Total Income</h3>
+            <p className="text-2xl font-semibold text-gray-900">
               ${summary?.total_income.toFixed(2) || "0.00"}
             </p>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-transparent rounded-full blur-2xl" />
           </motion.div>
 
           {/* Total Expenses */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
-            className="relative overflow-hidden bg-gradient-to-br from-red-50 to-pink-50 backdrop-blur-xl border border-red-200/50 rounded-3xl p-6 shadow-lg shadow-red-100/50 hover:shadow-xl hover:shadow-red-100/70 transition-all hover:scale-105"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow"
           >
             <div className="flex items-start justify-between mb-4">
-              <div className="p-3 bg-red-500/10 rounded-2xl backdrop-blur-sm">
-                <ArrowDownRight className="w-6 h-6 text-red-600" />
+              <div className="p-2.5 bg-rose-50 rounded-lg">
+                <ArrowDownRight className="w-5 h-5 text-rose-600" />
               </div>
-              <div className="px-3 py-1 bg-red-100 rounded-full">
-                <span className="text-red-700 text-xs font-semibold">Expenses</span>
-              </div>
+              <span className="text-xs text-gray-500 font-medium">EXPENSES</span>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Total Expenses</h3>
-            <p className="text-3xl font-bold text-gray-900">
+            <h3 className="text-sm text-gray-500 mb-1">Total Expenses</h3>
+            <p className="text-2xl font-semibold text-gray-900">
               ${summary?.total_expenses.toFixed(2) || "0.00"}
             </p>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-red-400/20 to-transparent rounded-full blur-2xl" />
           </motion.div>
 
           {/* Net Balance */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ delay: 0.3, type: "spring", stiffness: 300 }}
-            className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 backdrop-blur-xl border border-blue-200/50 rounded-3xl p-6 shadow-lg shadow-blue-100/50 hover:shadow-xl hover:shadow-blue-100/70 transition-all hover:scale-105"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow"
           >
             <div className="flex items-start justify-between mb-4">
-              <div className="p-3 bg-blue-500/10 rounded-2xl backdrop-blur-sm">
-                <Wallet className="w-6 h-6 text-blue-600" />
+              <div className="p-2.5 bg-blue-50 rounded-lg">
+                <Wallet className="w-5 h-5 text-blue-600" />
               </div>
-              <div className="px-3 py-1 bg-blue-100 rounded-full">
-                <span className="text-blue-700 text-xs font-semibold">Balance</span>
-              </div>
+              <span className="text-xs text-gray-500 font-medium">BALANCE</span>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Net Balance</h3>
-            <p className="text-3xl font-bold text-gray-900">
+            <h3 className="text-sm text-gray-500 mb-1">Net Balance</h3>
+            <p className="text-2xl font-semibold text-gray-900">
               ${summary?.net_balance.toFixed(2) || "0.00"}
             </p>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-transparent rounded-full blur-2xl" />
           </motion.div>
 
           {/* Budget Remaining */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ delay: 0.4, type: "spring", stiffness: 300 }}
-            className="relative overflow-hidden bg-gradient-to-br from-purple-50 to-pink-50 backdrop-blur-xl border border-purple-200/50 rounded-3xl p-6 shadow-lg shadow-purple-100/50 hover:shadow-xl hover:shadow-purple-100/70 transition-all hover:scale-105"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow"
           >
-            <div className="flex items-start justify-between mb-4 relative z-10">
-              <div className="p-3 bg-purple-500/10 rounded-2xl backdrop-blur-sm">
-                <DollarSign className="w-6 h-6 text-purple-600" />
+            <div className="flex items-start justify-between mb-4">
+              <div className="p-2.5 bg-gray-100 rounded-lg">
+                <DollarSign className="w-5 h-5 text-gray-700" />
               </div>
               <button
                 onClick={budget ? handleEditBudget : () => setShowBudgetModal(true)}
-                className="px-3 py-1 bg-purple-100 hover:bg-purple-200 rounded-full transition-all cursor-pointer"
+                className="text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
               >
-                <span className="text-purple-700 text-xs font-semibold">
-                  {budget ? "Edit" : "Set Budget"}
-                </span>
+                {budget ? "Edit" : "Set"}
               </button>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Remaining</h3>
-            <p className="text-3xl font-bold text-gray-900">
-              {budget ? `$${budgetRemaining.toFixed(2)}` : "No budget set"}
+            <h3 className="text-sm text-gray-500 mb-1">Budget Remaining</h3>
+            <p className="text-2xl font-semibold text-gray-900">
+              {budget ? `$${budgetRemaining.toFixed(2)}` : "Not set"}
             </p>
             {budget && (
               <div className="mt-3">
-                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
                   <div
-                    className={`h-2 rounded-full transition-all ${
+                    className={`h-1.5 rounded-full transition-all ${
                       budgetProgress > 100
-                        ? "bg-gradient-to-r from-red-500 to-pink-500"
+                        ? "bg-rose-500"
                         : budgetProgress > 80
-                        ? "bg-gradient-to-r from-orange-500 to-yellow-500"
-                        : "bg-gradient-to-r from-green-500 to-emerald-500"
+                        ? "bg-amber-500"
+                        : "bg-emerald-500"
                     }`}
                     style={{ width: `${Math.min(budgetProgress, 100)}%` }}
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1.5">
-                  {budgetProgress.toFixed(0)}% used
+                <p className="text-xs text-gray-400 mt-1.5">
+                  {budgetProgress.toFixed(0)}% spent
                 </p>
               </div>
             )}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-transparent rounded-full blur-2xl" />
           </motion.div>
         </div>
 
-        {/* Charts Row - Glass cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
           {/* Spending Trend Chart */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
-            className="bg-white/60 backdrop-blur-xl border border-gray-200/50 rounded-3xl p-8 shadow-xl shadow-gray-200/50"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-white border border-gray-200 rounded-xl p-6"
           >
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl">
-                <Calendar className="w-5 h-5 text-white" />
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <Calendar className="w-5 h-5 text-gray-700" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900">
+              <h3 className="text-lg font-semibold text-gray-900">
                 Spending Trend
               </h3>
             </div>
@@ -568,16 +556,16 @@ export default function FinancePage() {
 
           {/* Category Breakdown Pie Chart */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6, type: "spring", stiffness: 200 }}
-            className="bg-white/60 backdrop-blur-xl border border-gray-200/50 rounded-3xl p-8 shadow-xl shadow-gray-200/50"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="bg-white border border-gray-200 rounded-xl p-6"
           >
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
-                <PieChart className="w-5 h-5 text-white" />
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <PieChart className="w-5 h-5 text-gray-700" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900">
+              <h3 className="text-lg font-semibold text-gray-900">
                 By Category
               </h3>
             </div>
@@ -701,9 +689,9 @@ export default function FinancePage() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.5 }}
         onClick={() => setShowAddModal(true)}
-        className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full shadow-2xl shadow-blue-300 flex items-center justify-center transition-all hover:scale-110 z-50"
+        className="fixed bottom-8 right-8 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 z-50"
       >
-        <Plus className="w-8 h-8" />
+        <Plus className="w-6 h-6" />
       </motion.button>
 
       {/* Add/Edit Transaction Modal */}
