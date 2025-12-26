@@ -12,12 +12,11 @@ router = APIRouter(prefix="/finance", tags=["finance"])
 @router.post("/", response_model=FinanceRecordResponse, status_code=status.HTTP_201_CREATED)
 def create_finance_record(
     record: FinanceRecordCreate,
-    user_id: int,
     db: Session = Depends(get_db)
 ):
     """Create a new finance record"""
     db_record = FinanceRecord(
-        user_id=user_id,
+        user_id=record.user_id,
         amount=record.amount,
         transaction_type=record.transaction_type,
         category=record.category,
@@ -30,16 +29,17 @@ def create_finance_record(
     db.refresh(db_record)
 
     # Auto-vectorize: Update personal context after expense is logged
+    # This helps the AI understand spending patterns
     if record.transaction_type == TransactionType.EXPENSE:
         try:
             from services.personal_context_service import PersonalContextService
             import logging
             logger = logging.getLogger(__name__)
 
-            personal_context = PersonalContextService(db, user_id)
+            personal_context = PersonalContextService(db, record.user_id)
             # Regenerate expense insights with new data
             personal_context.generate_expense_insights(days=30)
-            logger.info(f"Auto-vectorized expense for user {user_id}")
+            logger.info(f"Auto-vectorized expense for user {record.user_id}")
         except Exception as e:
             # Don't fail the request if vectorization fails
             import logging
@@ -68,25 +68,48 @@ def get_user_finance_records(
 
 
 @router.get("/summary/{user_id}")
-def get_finance_summary(user_id: int, db: Session = Depends(get_db)):
+def get_finance_summary(
+    user_id: int,
+    period: str = "monthly",
+    db: Session = Depends(get_db)
+):
     """Get financial summary for a user"""
+    from datetime import datetime, timedelta
+
+    # Calculate date filter based on period
+    now = datetime.now()
+    if period == "weekly":
+        start_date = now - timedelta(days=7)
+    elif period == "monthly":
+        start_date = now - timedelta(days=30)
+    else:
+        start_date = None  # All time
+
+    # Build base query filters
+    income_filters = [
+        FinanceRecord.user_id == user_id,
+        FinanceRecord.transaction_type == TransactionType.INCOME
+    ]
+    expense_filters = [
+        FinanceRecord.user_id == user_id,
+        FinanceRecord.transaction_type == TransactionType.EXPENSE
+    ]
+
+    if start_date:
+        income_filters.append(FinanceRecord.transaction_date >= start_date)
+        expense_filters.append(FinanceRecord.transaction_date >= start_date)
+
     # Total income
     total_income = (
         db.query(func.sum(FinanceRecord.amount))
-        .filter(
-            FinanceRecord.user_id == user_id,
-            FinanceRecord.transaction_type == TransactionType.INCOME
-        )
+        .filter(*income_filters)
         .scalar() or 0.0
     )
 
     # Total expenses
     total_expenses = (
         db.query(func.sum(FinanceRecord.amount))
-        .filter(
-            FinanceRecord.user_id == user_id,
-            FinanceRecord.transaction_type == TransactionType.EXPENSE
-        )
+        .filter(*expense_filters)
         .scalar() or 0.0
     )
 
@@ -96,19 +119,20 @@ def get_finance_summary(user_id: int, db: Session = Depends(get_db)):
             FinanceRecord.category,
             func.sum(FinanceRecord.amount).label("total")
         )
-        .filter(
-            FinanceRecord.user_id == user_id,
-            FinanceRecord.transaction_type == TransactionType.EXPENSE
-        )
+        .filter(*expense_filters)
         .group_by(FinanceRecord.category)
         .all()
     )
+
+    # Convert expenses_by_category to dict for frontend
+    category_breakdown = {cat: amt for cat, amt in expenses_by_category}
 
     return {
         "total_income": total_income,
         "total_expenses": total_expenses,
         "net_balance": total_income - total_expenses,
-        "expenses_by_category": [
+        "category_breakdown": category_breakdown,  # Frontend expects this
+        "expenses_by_category": [  # Keep for backwards compatibility
             {"category": cat, "amount": amt} for cat, amt in expenses_by_category
         ]
     }

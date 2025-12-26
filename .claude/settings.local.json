@@ -74,7 +74,10 @@
       "Bash(npm install three-stdlib)",
       "Bash(npx next dev -H 0.0.0.0)",
       "Bash(npm install --save-dev cross-env)",
-      "Bash(cat node_modules/cross-env/package.json)"
+      "Bash(cat node_modules/cross-env/package.json)",
+      "Bash(curl:*)",
+      "Bash(PGPASSWORD=root1234 psql:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

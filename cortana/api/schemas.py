@@ -28,6 +28,7 @@ class UserResponse(BaseModel):
 
 # Finance Schemas
 class FinanceRecordCreate(BaseModel):
+    user_id: int
     amount: float
     transaction_type: TransactionType
     category: str

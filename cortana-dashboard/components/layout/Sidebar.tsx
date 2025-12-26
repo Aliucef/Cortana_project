@@ -9,14 +9,15 @@ import {
   Target,
   MessageCircle,
   Settings,
+  Newspaper,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: "Overview", href: "/", icon: LayoutDashboard },
   { name: "Finance", href: "/finance", icon: DollarSign },
-  { name: "Workouts", href: "/workouts", icon: Dumbbell },
-  { name: "Goals", href: "/goals", icon: Target },
+  { name: "Workouts", href: "/health", icon: Dumbbell },
+  { name: "News", href: "/news", icon: Newspaper },
   { name: "AI Chat", href: "/chat", icon: MessageCircle },
 ];
 
@@ -42,7 +43,7 @@ export default function Sidebar() {
             <Link key={item.name} href={item.href}>
               <div
                 className={cn(
-                  "relative w-12 h-12 flex items-center justify-center rounded-lg transition-all",
+                  "relative w-12 h-12 flex items-center justify-center rounded-lg transition-all group",
                   isActive
                     ? "bg-gray-100 text-gray-900"
                     : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
@@ -54,6 +55,11 @@ export default function Sidebar() {
                 {isActive && (
                   <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-blue-600 rounded-r-full" />
                 )}
+
+                {/* Tooltip */}
+                <div className="absolute left-16 bg-gray-900 text-white text-sm px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap">
+                  {item.name}
+                </div>
               </div>
             </Link>
           );
@@ -62,8 +68,11 @@ export default function Sidebar() {
 
       {/* Settings */}
       <Link href="/settings">
-        <div className="w-12 h-12 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-all">
+        <div className="w-12 h-12 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-all group relative">
           <Settings className="w-5 h-5" />
+          <div className="absolute left-16 bg-gray-900 text-white text-sm px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap">
+            Settings
+          </div>
         </div>
       </Link>
     </aside>

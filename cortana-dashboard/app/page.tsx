@@ -1,14 +1,35 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Cortana3D from "@/components/dashboard/Cortana3D";
 import { StatCard } from "@/components/ui/GlassCard";
 import { DollarSign, Dumbbell, Target, TrendingUp } from "lucide-react";
+import { getDashboardOverview, type DashboardOverview } from "@/lib/api";
 
 export default function Home() {
+  const [overview, setOverview] = useState<DashboardOverview | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadOverview();
+  }, []);
+
+  async function loadOverview() {
+    setLoading(true);
+    try {
+      const data = await getDashboardOverview(1);
+      setOverview(data);
+    } catch (error) {
+      console.error("Failed to load overview:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      {/* Welcome Message - Reduced spacing */}
+      {/* Welcome Message */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -26,11 +47,11 @@ export default function Home() {
       {/* Cortana 3D Visualization */}
       <Cortana3D />
 
-      {/* Stats Grid - With borders and clean spacing */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
         <StatCard
           label="This Month's Spending"
-          value="$2,450"
+          value={loading ? "Loading..." : `$${overview?.finance.total_expenses.toFixed(2) || "0.00"}`}
           change={-15}
           icon={<DollarSign className="w-5 h-5 text-blue-600" />}
           trend="down"
@@ -39,7 +60,7 @@ export default function Home() {
 
         <StatCard
           label="Workouts This Week"
-          value="4/4"
+          value={loading ? "Loading..." : `${overview?.health.workouts_this_week || 0}`}
           change={25}
           icon={<Dumbbell className="w-5 h-5 text-green-600" />}
           trend="up"
@@ -47,8 +68,8 @@ export default function Home() {
         />
 
         <StatCard
-          label="Goal Progress"
-          value="68%"
+          label="Current Weight"
+          value={loading ? "Loading..." : overview?.health.current_weight ? `${overview.health.current_weight} kg` : "N/A"}
           change={12}
           icon={<Target className="w-5 h-5 text-purple-600" />}
           trend="up"
@@ -56,8 +77,8 @@ export default function Home() {
         />
 
         <StatCard
-          label="Budget Remaining"
-          value="$550"
+          label="Net Balance"
+          value={loading ? "Loading..." : `$${overview?.finance.net_balance.toFixed(2) || "0.00"}`}
           change={0}
           icon={<TrendingUp className="w-5 h-5 text-gray-600" />}
           trend="neutral"
