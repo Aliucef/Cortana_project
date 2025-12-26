@@ -87,9 +87,18 @@ export interface CategoryGoal {
  */
 export async function getFinanceSummary(
   userId: number = DEFAULT_USER_ID,
-  period: "weekly" | "monthly" = "monthly"
+  period: "weekly" | "monthly" | "custom" = "monthly",
+  startDate?: string,
+  endDate?: string
 ): Promise<FinanceSummary> {
-  return apiCall(`/finance/summary/${userId}?period=${period}`);
+  let url = `/finance/summary/${userId}?period=${period}`;
+
+  // Add custom date range if provided
+  if (period === "custom" && startDate && endDate) {
+    url += `&start_date=${startDate}&end_date=${endDate}`;
+  }
+
+  return apiCall(url);
 }
 
 /**

@@ -17,6 +17,8 @@ import {
   Download,
   FileText,
   FileSpreadsheet,
+  CalendarDays,
+  X,
 } from "lucide-react";
 import {
   AreaChart,
@@ -50,7 +52,7 @@ export default function FinancePage() {
   const [summary, setSummary] = useState<FinanceSummary | null>(null);
   const [records, setRecords] = useState<FinanceRecord[]>([]);
   const [budget, setBudget] = useState<Budget | null>(null);
-  const [period, setPeriod] = useState<"weekly" | "monthly">("monthly");
+  const [period, setPeriod] = useState<"weekly" | "monthly" | "custom">("monthly");
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -60,6 +62,11 @@ export default function FinancePage() {
   const [deleting, setDeleting] = useState(false);
   const [editingRecord, setEditingRecord] = useState<FinanceRecord | null>(null);
   const [showBudgetModal, setShowBudgetModal] = useState(false);
+
+  // Date range state
+  const [customStartDate, setCustomStartDate] = useState("");
+  const [customEndDate, setCustomEndDate] = useState("");
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -78,13 +85,18 @@ export default function FinancePage() {
 
   useEffect(() => {
     loadData();
-  }, [period]);
+  }, [period, customStartDate, customEndDate]);
 
   async function loadData() {
     setLoading(true);
     try {
       const [summaryData, recordsData, budgetData] = await Promise.all([
-        getFinanceSummary(1, period),
+        getFinanceSummary(
+          1,
+          period,
+          period === "custom" ? customStartDate : undefined,
+          period === "custom" ? customEndDate : undefined
+        ),
         getFinanceRecords(1),
         getBudget(1),
       ]);
@@ -260,6 +272,22 @@ export default function FinancePage() {
     setShowBudgetModal(true);
   }
 
+  // Helper function to apply custom date range
+  function applyCustomDateRange() {
+    if (customStartDate && customEndDate) {
+      setPeriod("custom");
+      setShowDatePicker(false);
+    }
+  }
+
+  // Helper function to clear custom date range
+  function clearCustomDateRange() {
+    setCustomStartDate("");
+    setCustomEndDate("");
+    setPeriod("monthly");
+    setShowDatePicker(false);
+  }
+
   // Calculate budget progress
   const budgetProgress = budget && summary
     ? (summary.total_expenses / budget.amount) * 100
@@ -269,6 +297,17 @@ export default function FinancePage() {
     ? budget.amount - summary.total_expenses
     : 0;
 
+  // Filter records based on date range
+  const filteredRecords = records.filter((record) => {
+    if (period === "custom" && customStartDate && customEndDate) {
+      const recordDate = new Date(record.transaction_date);
+      const start = new Date(customStartDate);
+      const end = new Date(customEndDate);
+      return recordDate >= start && recordDate <= end;
+    }
+    return true;
+  });
+
   // Prepare category data for pie chart
   const categoryData = summary?.category_breakdown
     ? Object.entries(summary.category_breakdown).map(([category, amount]) => ({
@@ -277,8 +316,8 @@ export default function FinancePage() {
       }))
     : [];
 
-  // Prepare trend data for area chart (last 30 days)
-  const trendData = records
+  // Prepare trend data for area chart (filtered by date range)
+  const trendData = filteredRecords
     .slice(0, 30)
     .reverse()
     .reduce((acc: any[], record) => {
@@ -347,7 +386,10 @@ export default function FinancePage() {
             {/* Period Selector */}
             <div className="flex gap-1 bg-gray-200 p-1 rounded-lg">
               <button
-                onClick={() => setPeriod("weekly")}
+                onClick={() => {
+                  setPeriod("weekly");
+                  setShowDatePicker(false);
+                }}
                 className={`px-5 py-2 rounded-md font-medium text-sm transition-all ${
                   period === "weekly"
                     ? "bg-white text-gray-900 shadow-sm"
@@ -357,7 +399,10 @@ export default function FinancePage() {
                 Weekly
               </button>
               <button
-                onClick={() => setPeriod("monthly")}
+                onClick={() => {
+                  setPeriod("monthly");
+                  setShowDatePicker(false);
+                }}
                 className={`px-5 py-2 rounded-md font-medium text-sm transition-all ${
                   period === "monthly"
                     ? "bg-white text-gray-900 shadow-sm"
@@ -366,7 +411,33 @@ export default function FinancePage() {
               >
                 Monthly
               </button>
+              <button
+                onClick={() => setShowDatePicker(!showDatePicker)}
+                className={`px-5 py-2 rounded-md font-medium text-sm transition-all flex items-center gap-2 ${
+                  period === "custom"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                <CalendarDays className="w-4 h-4" />
+                Custom
+              </button>
             </div>
+
+            {/* Custom Date Range Badge */}
+            {period === "custom" && customStartDate && customEndDate && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-200">
+                <span className="text-sm font-medium">
+                  {new Date(customStartDate).toLocaleDateString()} - {new Date(customEndDate).toLocaleDateString()}
+                </span>
+                <button
+                  onClick={clearCustomDateRange}
+                  className="hover:bg-blue-100 rounded-full p-0.5 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
 
             {/* Export Buttons */}
             <div className="flex gap-2">
@@ -388,6 +459,55 @@ export default function FinancePage() {
               </a>
             </div>
           </div>
+
+          {/* Date Range Picker */}
+          {showDatePicker && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 p-4 bg-white border border-gray-200 rounded-xl shadow-sm"
+            >
+              <div className="flex items-center gap-4 flex-wrap">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                    From
+                  </label>
+                  <input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                    To
+                  </label>
+                  <input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="flex gap-2 mt-5">
+                  <button
+                    onClick={applyCustomDateRange}
+                    disabled={!customStartDate || !customEndDate}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium text-sm rounded-lg transition-all"
+                  >
+                    Apply
+                  </button>
+                  <button
+                    onClick={() => setShowDatePicker(false)}
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm rounded-lg transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </motion.div>
 
         {/* Stats Cards */}
@@ -623,7 +743,7 @@ export default function FinancePage() {
             </button>
           </div>
           <div className="space-y-3">
-            {records.slice(0, 8).map((record, index) => (
+            {filteredRecords.slice(0, 8).map((record, index) => (
               <motion.div
                 key={record.id}
                 initial={{ opacity: 0, x: -20 }}

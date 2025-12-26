@@ -74,19 +74,29 @@ def get_user_finance_records(
 def get_finance_summary(
     user_id: int,
     period: str = "monthly",
+    start_date: str = None,
+    end_date: str = None,
     db: Session = Depends(get_db)
 ):
-    """Get financial summary for a user"""
+    """Get financial summary for a user with optional custom date range"""
     from datetime import datetime, timedelta
 
-    # Calculate date filter based on period
+    # Calculate date filter based on period or custom range
     now = datetime.now()
-    if period == "weekly":
+
+    # If custom date range is provided, use it
+    if start_date and end_date:
+        start_date = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+        end_date = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+    elif period == "weekly":
         start_date = now - timedelta(days=7)
+        end_date = now
     elif period == "monthly":
         start_date = now - timedelta(days=30)
+        end_date = now
     else:
         start_date = None  # All time
+        end_date = None
 
     # Build base query filters
     income_filters = [
@@ -101,6 +111,10 @@ def get_finance_summary(
     if start_date:
         income_filters.append(FinanceRecord.transaction_date >= start_date)
         expense_filters.append(FinanceRecord.transaction_date >= start_date)
+
+    if end_date:
+        income_filters.append(FinanceRecord.transaction_date <= end_date)
+        expense_filters.append(FinanceRecord.transaction_date <= end_date)
 
     # Total income
     total_income = (

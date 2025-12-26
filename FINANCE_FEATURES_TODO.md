@@ -8,7 +8,7 @@
 3. ✅ **Edit Transaction** - Modify existing transactions (COMPLETED)
 4. ✅ **Set/Edit Budget** - Add a modal to set monthly/weekly budget limits (COMPLETED)
 5. ✅ **Export Reports** - Download finance data as PDF or Excel (COMPLETED)
-6. ⏳ **Date Range Filter** - Filter transactions by custom date ranges (last week, last month, custom)
+6. ✅ **Date Range Filter** - Filter transactions by custom date ranges (last week, last month, custom) (COMPLETED)
 
 ### Medium Priority
 7. ⏳ **Category Goals** - Set spending limits per category (e.g., max $500/month on food)
@@ -27,9 +27,9 @@
 ---
 
 ## Progress Tracking
-- **Completed**: 5/16
+- **Completed**: 6/16
 - **In Progress**: 0/16
-- **Pending**: 11/16
+- **Pending**: 10/16
 
 ---
 
