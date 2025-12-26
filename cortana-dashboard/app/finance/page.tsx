@@ -134,7 +134,7 @@ export default function FinancePage() {
       setDeleteConfirmId(null);
 
       // Show success notification
-      setSuccessMessage({ title: "Transaction Deleted!", subtitle: "Record removed successfully" });
+      setSuccessMessage({ title: "Transaction Deleted!", subtitle: "AI context updated successfully" });
       setShowSuccessToast(true);
       setTimeout(() => setShowSuccessToast(false), 3000);
 

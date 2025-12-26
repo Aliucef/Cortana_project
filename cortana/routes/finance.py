@@ -160,6 +160,28 @@ def delete_finance_record(record_id: int, db: Session = Depends(get_db)):
             detail="Finance record not found"
         )
 
+    # Store user_id and type before deletion for AI update
+    user_id = record.user_id
+    transaction_type = record.transaction_type
+
     db.delete(record)
     db.commit()
+
+    # Auto-vectorize: Update personal context after expense is deleted
+    # This helps the AI stay aware of current spending patterns
+    if transaction_type == TransactionType.EXPENSE:
+        try:
+            from services.personal_context_service import PersonalContextService
+            import logging
+            logger = logging.getLogger(__name__)
+
+            personal_context = PersonalContextService(db, user_id)
+            # Regenerate expense insights with updated data
+            personal_context.generate_expense_insights(days=30)
+            logger.info(f"Auto-vectorized after deletion for user {user_id}")
+        except Exception as e:
+            # Don't fail the request if vectorization fails
+            import logging
+            logging.warning(f"Failed to auto-vectorize after deletion: {e}")
+
     return None
