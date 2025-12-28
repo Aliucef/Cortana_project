@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config.database import engine, Base
 from config.settings import get_settings
-from routes import users, finance, news, workout, finance_agent, ai_chat, budget, health
+from routes import users, finance, news, workout, finance_agent, ai_chat, budget, health, recurring_expenses
 from routes import scheduler as scheduler_routes
 from services.scheduler_service import SchedulerService
 from services.telegram_service import TelegramService
@@ -74,6 +74,7 @@ app.include_router(ai_chat.router)
 app.include_router(budget.router)
 app.include_router(health.router, prefix="/health", tags=["health"])
 app.include_router(scheduler_routes.router)
+app.include_router(recurring_expenses.router)
 
 
 @app.get("/")

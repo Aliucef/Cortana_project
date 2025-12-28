@@ -83,6 +83,19 @@ export interface CategoryGoal {
   created_at: string;
 }
 
+export interface RecurringExpense {
+  id: number;
+  user_id: number;
+  name: string;
+  amount: number;
+  category: string;
+  frequency: "daily" | "weekly" | "monthly" | "yearly";
+  next_due_date: string;
+  reminder_days_before: number;
+  is_active: number;
+  created_at: string;
+}
+
 /**
  * Get financial summary
  */
@@ -237,6 +250,92 @@ export async function createCategoryGoal(data: {
 export async function deleteCategoryGoal(goalId: number): Promise<void> {
   return apiCall(`/budget/category-goal/${goalId}`, {
     method: "DELETE",
+  });
+}
+
+// ==================== RECURRING EXPENSES API ====================
+
+/**
+ * Get all recurring expenses for a user
+ */
+export async function getRecurringExpenses(
+  userId: number = DEFAULT_USER_ID
+): Promise<RecurringExpense[]> {
+  return apiCall(`/recurring-expenses/user/${userId}`);
+}
+
+/**
+ * Create new recurring expense
+ */
+export async function createRecurringExpense(data: {
+  name: string;
+  amount: number;
+  category: string;
+  frequency: "daily" | "weekly" | "monthly" | "yearly";
+  next_due_date: string;
+  reminder_days_before?: number;
+}): Promise<RecurringExpense> {
+  return apiCall("/recurring-expenses/", {
+    method: "POST",
+    body: JSON.stringify({
+      user_id: DEFAULT_USER_ID,
+      name: data.name,
+      amount: data.amount,
+      category: data.category,
+      frequency: data.frequency,
+      next_due_date: data.next_due_date,
+      reminder_days_before: data.reminder_days_before || 1,
+    }),
+  });
+}
+
+/**
+ * Update recurring expense
+ */
+export async function updateRecurringExpense(
+  expenseId: number,
+  data: {
+    name: string;
+    amount: number;
+    category: string;
+    frequency: "daily" | "weekly" | "monthly" | "yearly";
+    next_due_date: string;
+    reminder_days_before?: number;
+  }
+): Promise<RecurringExpense> {
+  return apiCall(`/recurring-expenses/${expenseId}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      user_id: DEFAULT_USER_ID,
+      name: data.name,
+      amount: data.amount,
+      category: data.category,
+      frequency: data.frequency,
+      next_due_date: data.next_due_date,
+      reminder_days_before: data.reminder_days_before || 1,
+    }),
+  });
+}
+
+/**
+ * Delete recurring expense (soft delete)
+ */
+export async function deleteRecurringExpense(
+  expenseId: number
+): Promise<void> {
+  return apiCall(`/recurring-expenses/${expenseId}`, {
+    method: "DELETE",
+  });
+}
+
+/**
+ * Manually process a recurring expense (creates transaction and updates next due date)
+ */
+export async function processRecurringExpense(
+  expenseId: number
+): Promise<{ message: string; transaction_id: number; next_due_date: string }> {
+  return apiCall(`/recurring-expenses/${expenseId}/process`, {
+    method: "POST",
   });
 }
 
@@ -565,6 +664,12 @@ export default {
   getBudget,
   createBudget,
   getCategoryGoals,
+  // Recurring Expenses
+  getRecurringExpenses,
+  createRecurringExpense,
+  updateRecurringExpense,
+  deleteRecurringExpense,
+  processRecurringExpense,
   // Health
   getWorkoutPlan,
   generateWorkoutPlan,
