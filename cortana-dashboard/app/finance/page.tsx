@@ -1365,10 +1365,11 @@ export default function FinancePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className={`border rounded-xl p-6 hover:shadow-md transition-shadow ${
+            whileHover={{ scale: 1.02, y: -2 }}
+            className={`border rounded-xl p-6 transition-all duration-300 cursor-pointer ${
               darkMode
-                ? 'bg-gray-800 border-gray-700'
-                : 'bg-white border-gray-200'
+                ? 'bg-gray-800 border-gray-700 hover:border-emerald-600/50 hover:shadow-lg hover:shadow-emerald-500/10'
+                : 'bg-white border-gray-200 hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/10'
             }`}
           >
             <div className="flex items-start justify-between mb-4">
@@ -1396,10 +1397,11 @@ export default function FinancePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className={`border rounded-xl p-6 hover:shadow-md transition-shadow ${
+            whileHover={{ scale: 1.02, y: -2 }}
+            className={`border rounded-xl p-6 transition-all duration-300 cursor-pointer ${
               darkMode
-                ? 'bg-gray-800 border-gray-700'
-                : 'bg-white border-gray-200'
+                ? 'bg-gray-800 border-gray-700 hover:border-rose-600/50 hover:shadow-lg hover:shadow-rose-500/10'
+                : 'bg-white border-gray-200 hover:border-rose-500 hover:shadow-lg hover:shadow-rose-500/10'
             }`}
           >
             <div className="flex items-start justify-between mb-4">
@@ -1427,10 +1429,11 @@ export default function FinancePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className={`border rounded-xl p-6 hover:shadow-md transition-shadow ${
+            whileHover={{ scale: 1.02, y: -2 }}
+            className={`border rounded-xl p-6 transition-all duration-300 cursor-pointer ${
               darkMode
-                ? 'bg-gray-800 border-gray-700'
-                : 'bg-white border-gray-200'
+                ? 'bg-gray-800 border-gray-700 hover:border-blue-600/50 hover:shadow-lg hover:shadow-blue-500/10'
+                : 'bg-white border-gray-200 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10'
             }`}
           >
             <div className="flex items-start justify-between mb-4">
@@ -1458,10 +1461,11 @@ export default function FinancePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            className={`border rounded-xl p-6 hover:shadow-md transition-shadow ${
+            whileHover={{ scale: 1.02, y: -2 }}
+            className={`border rounded-xl p-6 transition-all duration-300 cursor-pointer ${
               darkMode
-                ? 'bg-gray-800 border-gray-700'
-                : 'bg-white border-gray-200'
+                ? 'bg-gray-800 border-gray-700 hover:border-purple-600/50 hover:shadow-lg hover:shadow-purple-500/10'
+                : 'bg-white border-gray-200 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/10'
             }`}
           >
             <div className="flex items-start justify-between mb-4">
@@ -1622,10 +1626,11 @@ export default function FinancePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className={`border rounded-xl p-6 ${
+            whileHover={{ scale: 1.01, y: -2 }}
+            className={`border rounded-xl p-6 transition-all duration-300 ${
               darkMode
-                ? 'bg-gray-800 border-gray-700'
-                : 'bg-white border-gray-200'
+                ? 'bg-gray-800 border-gray-700 hover:border-gray-600 hover:shadow-lg'
+                : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-lg'
             }`}
           >
             <div className="flex items-center gap-3 mb-6">
@@ -1665,6 +1670,13 @@ export default function FinancePage() {
                     backdropFilter: "blur(10px)",
                     color: darkMode ? "#f3f4f6" : "#111827",
                   }}
+                  labelStyle={{
+                    color: darkMode ? "#f3f4f6" : "#111827",
+                    fontWeight: "600",
+                  }}
+                  itemStyle={{
+                    color: darkMode ? "#e5e7eb" : "#374151",
+                  }}
                 />
                 <Legend />
                 <Area
@@ -1692,10 +1704,11 @@ export default function FinancePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
-            className={`border rounded-xl p-6 ${
+            whileHover={{ scale: 1.01, y: -2 }}
+            className={`border rounded-xl p-6 transition-all duration-300 ${
               darkMode
-                ? 'bg-gray-800 border-gray-700'
-                : 'bg-white border-gray-200'
+                ? 'bg-gray-800 border-gray-700 hover:border-gray-600 hover:shadow-lg'
+                : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-lg'
             }`}
           >
             <div className="flex items-center gap-3 mb-6">
@@ -1742,6 +1755,13 @@ export default function FinancePage() {
                       backdropFilter: "blur(10px)",
                       color: darkMode ? "#f3f4f6" : "#111827",
                     }}
+                    labelStyle={{
+                      color: darkMode ? "#f3f4f6" : "#111827",
+                      fontWeight: "600",
+                    }}
+                    itemStyle={{
+                      color: darkMode ? "#e5e7eb" : "#374151",
+                    }}
                   />
                 </RechartsPie>
               </ResponsiveContainer>
@@ -1759,10 +1779,11 @@ export default function FinancePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className={`border rounded-xl p-6 ${
+            whileHover={{ scale: 1.01, y: -2 }}
+            className={`border rounded-xl p-6 transition-all duration-300 ${
               darkMode
-                ? 'bg-gray-800 border-gray-700'
-                : 'bg-white border-gray-200'
+                ? 'bg-gray-800 border-gray-700 hover:border-gray-600 hover:shadow-lg'
+                : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-lg'
             }`}
           >
             <div className="flex items-center gap-3 mb-6">
@@ -1809,6 +1830,13 @@ export default function FinancePage() {
                       backdropFilter: "blur(10px)",
                       color: darkMode ? "#f3f4f6" : "#111827",
                     }}
+                    labelStyle={{
+                      color: darkMode ? "#f3f4f6" : "#111827",
+                      fontWeight: "600",
+                    }}
+                    itemStyle={{
+                      color: darkMode ? "#e5e7eb" : "#374151",
+                    }}
                     formatter={(value: number) => `$${value.toFixed(2)}`}
                   />
                 </RechartsPie>
@@ -1827,10 +1855,11 @@ export default function FinancePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45 }}
-            className={`border rounded-xl p-6 ${
+            whileHover={{ scale: 1.01, y: -2 }}
+            className={`border rounded-xl p-6 transition-all duration-300 ${
               darkMode
-                ? 'bg-gray-800 border-gray-700'
-                : 'bg-white border-gray-200'
+                ? 'bg-gray-800 border-gray-700 hover:border-gray-600 hover:shadow-lg'
+                : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-lg'
             }`}
           >
             <div className="flex items-center gap-3 mb-6">
@@ -1874,6 +1903,13 @@ export default function FinancePage() {
                       borderRadius: "12px",
                       backdropFilter: "blur(10px)",
                       color: darkMode ? "#f3f4f6" : "#111827",
+                    }}
+                    labelStyle={{
+                      color: darkMode ? "#f3f4f6" : "#111827",
+                      fontWeight: "600",
+                    }}
+                    itemStyle={{
+                      color: darkMode ? "#e5e7eb" : "#374151",
                     }}
                     formatter={(value: number) => `$${value.toFixed(2)}`}
                   />
@@ -2660,15 +2696,15 @@ export default function FinancePage() {
           </motion.div>
         )}
 
-        {/* Recent Transactions - Glass card */}
+        {/* Recent Transactions */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7, type: "spring", stiffness: 200 }}
-          className={`backdrop-blur-xl border rounded-3xl p-8 shadow-xl ${
+          className={`border rounded-lg p-6 shadow-md ${
             darkMode
-              ? 'bg-gray-800/60 border-gray-700/50 shadow-gray-900/50'
-              : 'bg-white/60 border-gray-200/50 shadow-gray-200/50'
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-200'
           }`}
         >
           <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
@@ -2728,10 +2764,11 @@ export default function FinancePage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.8 + index * 0.05, type: "spring", stiffness: 300 }}
-                  className={`flex items-center justify-between p-4 backdrop-blur-sm rounded-2xl transition-all border ${
+                  whileHover={{ scale: 1.01, x: 4 }}
+                  className={`flex items-center justify-between p-4 rounded-lg transition-all duration-200 border cursor-pointer ${
                     darkMode
-                      ? 'bg-gray-800/80 border-gray-700/50 hover:bg-gray-800 hover:shadow-lg'
-                      : 'bg-white/80 border-gray-100/50 hover:bg-white hover:shadow-md'
+                      ? 'bg-gray-800 border-gray-700 hover:border-gray-600 hover:shadow-lg hover:bg-gray-750'
+                      : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-lg hover:bg-gray-50/50'
                   }`}
                 >
                 <div className="flex items-center gap-4">
@@ -2921,11 +2958,11 @@ export default function FinancePage() {
 
       {/* Add/Edit Transaction Modal */}
       {(showAddModal || editingRecord) && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className={`rounded-3xl p-8 max-w-md w-full shadow-2xl ${
+            className={`rounded-lg p-8 max-w-md w-full shadow-lg my-8 max-h-[90vh] overflow-y-auto ${
               darkMode
                 ? 'bg-gray-800'
                 : 'bg-white'
@@ -2939,7 +2976,7 @@ export default function FinancePage() {
 
             <form onSubmit={editingRecord ? handleUpdate : handleSubmit} className="space-y-4">
               {/* Type Toggle */}
-              <div className={`flex gap-2 p-1.5 rounded-2xl ${
+              <div className={`flex gap-2 p-1.5 rounded-lg ${
                 darkMode ? 'bg-gray-700' : 'bg-gray-100'
               }`}>
                 <button
@@ -3211,19 +3248,27 @@ export default function FinancePage() {
 
       {/* Delete Confirmation Dialog */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+            className={`rounded-lg p-8 max-w-md w-full shadow-lg ${
+              darkMode ? 'bg-gray-800' : 'bg-white'
+            }`}
           >
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-red-100 rounded-2xl">
+              <div className={`p-3 rounded-lg ${
+                darkMode ? 'bg-red-900/30' : 'bg-red-100'
+              }`}>
                 <Trash2 className="w-6 h-6 text-red-600" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">Delete Transaction?</h3>
-                <p className="text-sm text-gray-500 mt-1">This action cannot be undone</p>
+                <h3 className={`text-xl font-bold ${
+                  darkMode ? 'text-white' : 'text-gray-900'
+                }`}>Delete Transaction?</h3>
+                <p className={`text-sm mt-1 ${
+                  darkMode ? 'text-gray-400' : 'text-gray-500'
+                }`}>This action cannot be undone</p>
               </div>
             </div>
 
@@ -3231,7 +3276,11 @@ export default function FinancePage() {
               <button
                 onClick={() => setDeleteConfirmId(null)}
                 disabled={deleting}
-                className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 text-gray-700 font-semibold rounded-xl transition-all"
+                className={`flex-1 py-3 font-semibold rounded-lg transition-all ${
+                  darkMode
+                    ? 'bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-gray-300'
+                    : 'bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 text-gray-700'
+                }`}
               >
                 Cancel
               </button>
@@ -3255,20 +3304,26 @@ export default function FinancePage() {
 
       {/* Budget Modal */}
       {showBudgetModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+            className={`rounded-lg p-8 max-w-md w-full shadow-lg my-8 max-h-[90vh] overflow-y-auto ${
+              darkMode ? 'bg-gray-800' : 'bg-white'
+            }`}
           >
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            <h2 className={`text-2xl font-bold mb-6 ${
+              darkMode ? 'text-white' : 'text-gray-900'
+            }`}>
               {budget ? "Edit Budget" : "Set Budget"}
             </h2>
 
             <form onSubmit={handleBudgetSubmit} className="space-y-4">
               {/* Amount */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={`block text-sm font-semibold mb-2 ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Budget Amount
                 </label>
                 <input
@@ -3279,23 +3334,35 @@ export default function FinancePage() {
                   onChange={(e) =>
                     setBudgetFormData({ ...budgetFormData, amount: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                    darkMode
+                      ? 'bg-gray-700 border-gray-600 text-white'
+                      : 'bg-white border-gray-200 text-gray-900'
+                  }`}
                   placeholder="0.00"
                 />
               </div>
 
               {/* Period Toggle */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={`block text-sm font-semibold mb-2 ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Period
                 </label>
-                <div className="flex gap-2 bg-gray-100 p-1.5 rounded-2xl">
+                <div className={`flex gap-2 p-1.5 rounded-lg ${
+                  darkMode ? 'bg-gray-700' : 'bg-gray-100'
+                }`}>
                   <button
                     type="button"
                     onClick={() => setBudgetFormData({ ...budgetFormData, period: "weekly" })}
                     className={`flex-1 py-2.5 rounded-xl font-semibold transition-all ${
                       budgetFormData.period === "weekly"
-                        ? "bg-white text-purple-600 shadow-md"
+                        ? darkMode
+                          ? "bg-gray-800 text-purple-400 shadow-md"
+                          : "bg-white text-purple-600 shadow-md"
+                        : darkMode
+                        ? "text-gray-400"
                         : "text-gray-600"
                     }`}
                   >
@@ -3306,7 +3373,11 @@ export default function FinancePage() {
                     onClick={() => setBudgetFormData({ ...budgetFormData, period: "monthly" })}
                     className={`flex-1 py-2.5 rounded-xl font-semibold transition-all ${
                       budgetFormData.period === "monthly"
-                        ? "bg-white text-purple-600 shadow-md"
+                        ? darkMode
+                          ? "bg-gray-800 text-purple-400 shadow-md"
+                          : "bg-white text-purple-600 shadow-md"
+                        : darkMode
+                        ? "text-gray-400"
                         : "text-gray-600"
                     }`}
                   >
@@ -3316,8 +3387,14 @@ export default function FinancePage() {
               </div>
 
               {/* Info Message */}
-              <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-                <p className="text-sm text-purple-800">
+              <div className={`rounded-xl p-4 border ${
+                darkMode
+                  ? 'bg-purple-900/20 border-purple-800'
+                  : 'bg-purple-50 border-purple-200'
+              }`}>
+                <p className={`text-sm ${
+                  darkMode ? 'text-purple-300' : 'text-purple-800'
+                }`}>
                   Your budget will be used to track spending limits and alert you when approaching the limit.
                 </p>
               </div>
@@ -3333,7 +3410,11 @@ export default function FinancePage() {
                       period: "monthly",
                     });
                   }}
-                  className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all"
+                  className={`flex-1 py-3 font-semibold rounded-xl transition-all ${
+                    darkMode
+                      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  }`}
                 >
                   Cancel
                 </button>
@@ -3358,20 +3439,26 @@ export default function FinancePage() {
 
       {/* Category Goal Modal */}
       {showCategoryGoalModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+            className={`rounded-lg p-8 max-w-md w-full shadow-lg my-8 max-h-[90vh] overflow-y-auto ${
+              darkMode ? 'bg-gray-800' : 'bg-white'
+            }`}
           >
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            <h2 className={`text-2xl font-bold mb-6 ${
+              darkMode ? 'text-white' : 'text-gray-900'
+            }`}>
               Set Category Goal
             </h2>
 
             <form onSubmit={handleCategoryGoalSubmit} className="space-y-4">
               {/* Category */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={`block text-sm font-semibold mb-2 ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Category
                 </label>
                 <select
@@ -3380,7 +3467,11 @@ export default function FinancePage() {
                   onChange={(e) =>
                     setCategoryGoalFormData({ ...categoryGoalFormData, category: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    darkMode
+                      ? 'bg-gray-700 border-gray-600 text-white'
+                      : 'bg-white border-gray-200 text-gray-900'
+                  }`}
                 >
                   <option value="">Select category</option>
                   <option value="Food">Food</option>
@@ -3396,7 +3487,9 @@ export default function FinancePage() {
 
               {/* Goal Amount */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={`block text-sm font-semibold mb-2 ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Spending Limit
                 </label>
                 <input
@@ -3407,17 +3500,25 @@ export default function FinancePage() {
                   onChange={(e) =>
                     setCategoryGoalFormData({ ...categoryGoalFormData, goal_amount: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    darkMode
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                      : 'bg-white border-gray-200 text-gray-900'
+                  }`}
                   placeholder="0.00"
                 />
               </div>
 
               {/* Period Toggle */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={`block text-sm font-semibold mb-2 ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Period
                 </label>
-                <div className="flex gap-2 bg-gray-100 p-1.5 rounded-2xl">
+                <div className={`flex gap-2 p-1.5 rounded-lg ${
+                  darkMode ? 'bg-gray-700' : 'bg-gray-100'
+                }`}>
                   <button
                     type="button"
                     onClick={() => setCategoryGoalFormData({ ...categoryGoalFormData, period: "weekly" })}
@@ -3512,7 +3613,7 @@ export default function FinancePage() {
       {/* Recurring Expense Modal */}
       {showRecurringModal && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto"
           onClick={(e) => {
             // Close modal when clicking outside
             if (e.target === e.currentTarget) {
@@ -3532,12 +3633,16 @@ export default function FinancePage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl relative"
+            className={`rounded-lg p-6 max-w-md w-full shadow-lg relative my-8 max-h-[90vh] overflow-y-auto ${
+              darkMode ? 'bg-gray-800' : 'bg-white'
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header with close button */}
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className={`text-xl font-bold ${
+                darkMode ? 'text-white' : 'text-gray-900'
+              }`}>
                 {editingRecurring ? "Edit Recurring Expense" : "Add Recurring Expense"}
               </h2>
               <button
@@ -3554,9 +3659,13 @@ export default function FinancePage() {
                     reminder_days_before: "1",
                   });
                 }}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className={`p-2 rounded-lg transition-colors ${
+                  darkMode
+                    ? 'hover:bg-gray-700 text-gray-400'
+                    : 'hover:bg-gray-100 text-gray-500'
+                }`}
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -3564,7 +3673,9 @@ export default function FinancePage() {
               {/* Name & Amount Row */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                  <label className={`block text-xs font-medium mb-1.5 ${
+                    darkMode ? 'text-gray-400' : 'text-gray-600'
+                  }`}>
                     Expense Name
                   </label>
                   <input
@@ -3574,13 +3685,19 @@ export default function FinancePage() {
                     onChange={(e) =>
                       setRecurringFormData({ ...recurringFormData, name: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                      darkMode
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                        : 'bg-white border-gray-300 text-gray-900'
+                    }`}
                     placeholder="Netflix"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                  <label className={`block text-xs font-medium mb-1.5 ${
+                    darkMode ? 'text-gray-400' : 'text-gray-600'
+                  }`}>
                     Amount
                   </label>
                   <input
@@ -3591,7 +3708,11 @@ export default function FinancePage() {
                     onChange={(e) =>
                       setRecurringFormData({ ...recurringFormData, amount: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                      darkMode
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                        : 'bg-white border-gray-300 text-gray-900'
+                    }`}
                     placeholder="15.99"
                   />
                 </div>
@@ -3599,7 +3720,9 @@ export default function FinancePage() {
 
               {/* Category */}
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                <label className={`block text-xs font-medium mb-1.5 ${
+                  darkMode ? 'text-gray-400' : 'text-gray-600'
+                }`}>
                   Category
                 </label>
                 <select
@@ -3608,7 +3731,11 @@ export default function FinancePage() {
                   onChange={(e) =>
                     setRecurringFormData({ ...recurringFormData, category: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                    darkMode
+                      ? 'bg-gray-700 border-gray-600 text-white'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
                 >
                   <option value="">Select category</option>
                   <option value="Subscriptions">Subscriptions</option>
@@ -3622,7 +3749,9 @@ export default function FinancePage() {
 
               {/* Frequency */}
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                <label className={`block text-xs font-medium mb-1.5 ${
+                  darkMode ? 'text-gray-400' : 'text-gray-600'
+                }`}>
                   Frequency
                 </label>
                 <div className="grid grid-cols-4 gap-2">
@@ -3634,6 +3763,8 @@ export default function FinancePage() {
                       className={`py-2 rounded-lg font-medium text-xs transition-all capitalize border ${
                         recurringFormData.frequency === freq
                           ? "bg-blue-600 text-white border-blue-600"
+                          : darkMode
+                          ? "bg-gray-700 text-gray-300 border-gray-600 hover:border-gray-500"
                           : "bg-white text-gray-700 border-gray-300 hover:border-gray-400"
                       }`}
                     >
@@ -3645,7 +3776,9 @@ export default function FinancePage() {
 
               {/* Next Due Date */}
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                <label className={`block text-xs font-medium mb-1.5 ${
+                  darkMode ? 'text-gray-400' : 'text-gray-600'
+                }`}>
                   Next Due Date
                 </label>
                 <input
@@ -3655,7 +3788,11 @@ export default function FinancePage() {
                   onChange={(e) =>
                     setRecurringFormData({ ...recurringFormData, next_due_date: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                    darkMode
+                      ? 'bg-gray-700 border-gray-600 text-white'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
                 />
               </div>
 
@@ -3723,7 +3860,7 @@ export default function FinancePage() {
       {/* Savings Goal Modal */}
       {showSavingsGoalModal && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto"
           onClick={(e) => {
             // Close modal when clicking outside
             if (e.target === e.currentTarget) {
@@ -3741,12 +3878,16 @@ export default function FinancePage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl relative"
+            className={`rounded-lg p-6 max-w-md w-full shadow-lg relative my-8 max-h-[90vh] overflow-y-auto ${
+              darkMode ? 'bg-gray-800' : 'bg-white'
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header with close button */}
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className={`text-xl font-bold ${
+                darkMode ? 'text-white' : 'text-gray-900'
+              }`}>
                 {editingSavingsGoal ? "Edit Savings Goal" : "Add Savings Goal"}
               </h2>
               <button
@@ -3761,16 +3902,22 @@ export default function FinancePage() {
                     deadline: "",
                   });
                 }}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className={`p-2 rounded-full transition-colors ${
+                  darkMode
+                    ? 'hover:bg-gray-700 text-gray-400'
+                    : 'hover:bg-gray-100 text-gray-500'
+                }`}
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSavingsGoalSubmit} className="space-y-4">
               {/* Goal Name */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={`block text-sm font-semibold mb-2 ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Goal Name
                 </label>
                 <input
@@ -3780,14 +3927,20 @@ export default function FinancePage() {
                   onChange={(e) =>
                     setSavingsGoalFormData({ ...savingsGoalFormData, name: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    darkMode
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                      : 'bg-white border-gray-200 text-gray-900'
+                  }`}
                   placeholder="e.g., Emergency Fund, Vacation, New Car"
                 />
               </div>
 
               {/* Target Amount */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={`block text-sm font-semibold mb-2 ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Target Amount
                 </label>
                 <input
@@ -3798,14 +3951,20 @@ export default function FinancePage() {
                   onChange={(e) =>
                     setSavingsGoalFormData({ ...savingsGoalFormData, targetAmount: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    darkMode
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                      : 'bg-white border-gray-200 text-gray-900'
+                  }`}
                   placeholder="0.00"
                 />
               </div>
 
               {/* Current Amount */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={`block text-sm font-semibold mb-2 ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Current Amount
                 </label>
                 <input
@@ -3816,14 +3975,20 @@ export default function FinancePage() {
                   onChange={(e) =>
                     setSavingsGoalFormData({ ...savingsGoalFormData, currentAmount: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    darkMode
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                      : 'bg-white border-gray-200 text-gray-900'
+                  }`}
                   placeholder="0.00"
                 />
               </div>
 
               {/* Deadline */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={`block text-sm font-semibold mb-2 ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Target Date (Optional)
                 </label>
                 <input
@@ -3832,13 +3997,23 @@ export default function FinancePage() {
                   onChange={(e) =>
                     setSavingsGoalFormData({ ...savingsGoalFormData, deadline: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    darkMode
+                      ? 'bg-gray-700 border-gray-600 text-white'
+                      : 'bg-white border-gray-200 text-gray-900'
+                  }`}
                 />
               </div>
 
               {/* Info Message */}
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                <p className="text-sm text-blue-800">
+              <div className={`rounded-xl p-4 border ${
+                darkMode
+                  ? 'bg-blue-900/20 border-blue-800'
+                  : 'bg-blue-50 border-blue-200'
+              }`}>
+                <p className={`text-sm ${
+                  darkMode ? 'text-blue-300' : 'text-blue-800'
+                }`}>
                   Track your progress toward this savings goal. You can add money using the quick buttons or manually update the amount.
                 </p>
               </div>
@@ -3857,7 +4032,11 @@ export default function FinancePage() {
                       deadline: "",
                     });
                   }}
-                  className="flex-1 py-2.5 bg-white hover:bg-gray-50 text-gray-700 font-medium text-sm rounded-lg transition-all border border-gray-300"
+                  className={`flex-1 py-2.5 font-medium text-sm rounded-lg transition-all border ${
+                    darkMode
+                      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600'
+                      : 'bg-white hover:bg-gray-50 text-gray-700 border-gray-300'
+                  }`}
                 >
                   Cancel
                 </button>
@@ -3876,7 +4055,7 @@ export default function FinancePage() {
       {/* Split Transaction Modal */}
       {showSplitModal && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowSplitModal(false);
@@ -3886,37 +4065,55 @@ export default function FinancePage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl p-6 max-w-2xl w-full shadow-xl relative max-h-[90vh] overflow-y-auto"
+            className={`rounded-lg p-6 max-w-2xl w-full shadow-lg relative my-8 max-h-[90vh] overflow-y-auto ${
+              darkMode ? 'bg-gray-800' : 'bg-white'
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Split Transaction</h2>
-                <p className="text-sm text-gray-500 mt-1">Divide a payment across multiple categories</p>
+                <h2 className={`text-xl font-bold ${
+                  darkMode ? 'text-white' : 'text-gray-900'
+                }`}>Split Transaction</h2>
+                <p className={`text-sm mt-1 ${
+                  darkMode ? 'text-gray-400' : 'text-gray-500'
+                }`}>Divide a payment across multiple categories</p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowSplitModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className={`p-2 rounded-full transition-colors ${
+                  darkMode
+                    ? 'hover:bg-gray-700 text-gray-400'
+                    : 'hover:bg-gray-100 text-gray-500'
+                }`}
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSplitSubmit} className="space-y-6">
               {/* Transaction Type Toggle */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={`block text-sm font-semibold mb-2 ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Type
                 </label>
-                <div className="flex gap-2 bg-gray-100 p-1.5 rounded-2xl">
+                <div className={`flex gap-2 p-1.5 rounded-2xl ${
+                  darkMode ? 'bg-gray-700' : 'bg-gray-100'
+                }`}>
                   <button
                     type="button"
                     onClick={() => setSplitFormData({ ...splitFormData, type: "expense" })}
                     className={`flex-1 py-2.5 rounded-xl font-semibold transition-all ${
                       splitFormData.type === "expense"
-                        ? "bg-white text-red-600 shadow-md"
+                        ? darkMode
+                          ? "bg-gray-800 text-red-400 shadow-md"
+                          : "bg-white text-red-600 shadow-md"
+                        : darkMode
+                        ? "text-gray-400"
                         : "text-gray-600"
                     }`}
                   >
@@ -3927,7 +4124,11 @@ export default function FinancePage() {
                     onClick={() => setSplitFormData({ ...splitFormData, type: "income" })}
                     className={`flex-1 py-2.5 rounded-xl font-semibold transition-all ${
                       splitFormData.type === "income"
-                        ? "bg-white text-green-600 shadow-md"
+                        ? darkMode
+                          ? "bg-gray-800 text-green-400 shadow-md"
+                          : "bg-white text-green-600 shadow-md"
+                        : darkMode
+                        ? "text-gray-400"
                         : "text-gray-600"
                     }`}
                   >
@@ -3938,7 +4139,9 @@ export default function FinancePage() {
 
               {/* Total Amount */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={`block text-sm font-semibold mb-2 ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Total Amount
                 </label>
                 <input
@@ -3949,14 +4152,20 @@ export default function FinancePage() {
                   onChange={(e) =>
                     setSplitFormData({ ...splitFormData, totalAmount: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                    darkMode
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                      : 'bg-white border-gray-200 text-gray-900'
+                  }`}
                   placeholder="0.00"
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={`block text-sm font-semibold mb-2 ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Description
                 </label>
                 <input
@@ -3966,14 +4175,20 @@ export default function FinancePage() {
                   onChange={(e) =>
                     setSplitFormData({ ...splitFormData, description: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                    darkMode
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                      : 'bg-white border-gray-200 text-gray-900'
+                  }`}
                   placeholder="e.g., Grocery & Household Shopping"
                 />
               </div>
 
               {/* Date */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className={`block text-sm font-semibold mb-2 ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Date
                 </label>
                 <input
@@ -3983,20 +4198,30 @@ export default function FinancePage() {
                   onChange={(e) =>
                     setSplitFormData({ ...splitFormData, date: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                    darkMode
+                      ? 'bg-gray-700 border-gray-600 text-white'
+                      : 'bg-white border-gray-200 text-gray-900'
+                  }`}
                 />
               </div>
 
               {/* Split Items */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <label className="block text-sm font-semibold text-gray-700">
+                  <label className={`block text-sm font-semibold ${
+                    darkMode ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                     Split Breakdown
                   </label>
                   <button
                     type="button"
                     onClick={addSplitItem}
-                    className="flex items-center gap-1 text-sm font-medium text-purple-600 hover:text-purple-700"
+                    className={`flex items-center gap-1 text-sm font-medium transition-colors ${
+                      darkMode
+                        ? 'text-purple-400 hover:text-purple-300'
+                        : 'text-purple-600 hover:text-purple-700'
+                    }`}
                   >
                     <Plus className="w-4 h-4" />
                     Add Split
@@ -4011,7 +4236,11 @@ export default function FinancePage() {
                           required
                           value={item.category}
                           onChange={(e) => updateSplitItem(index, "category", e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                            darkMode
+                              ? 'bg-gray-700 border-gray-600 text-white'
+                              : 'bg-white border-gray-200 text-gray-900'
+                          }`}
                         >
                           <option value="">Select category</option>
                           <option value="Food">Food</option>
@@ -4035,7 +4264,11 @@ export default function FinancePage() {
                           required
                           value={item.amount}
                           onChange={(e) => updateSplitItem(index, "amount", e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                            darkMode
+                              ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                              : 'bg-white border-gray-200 text-gray-900'
+                          }`}
                           placeholder="0.00"
                         />
                       </div>
@@ -4043,7 +4276,11 @@ export default function FinancePage() {
                         <button
                           type="button"
                           onClick={() => removeSplitItem(index)}
-                          className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                          className={`p-3 rounded-xl transition-colors ${
+                            darkMode
+                              ? 'text-red-400 hover:bg-red-900/20'
+                              : 'text-red-500 hover:bg-red-50'
+                          }`}
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
@@ -4054,25 +4291,33 @@ export default function FinancePage() {
 
                 {/* Remaining Amount Indicator */}
                 {splitFormData.totalAmount && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded-xl">
+                  <div className={`mt-4 p-4 rounded-xl ${
+                    darkMode ? 'bg-gray-700' : 'bg-gray-50'
+                  }`}>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Total:</span>
-                      <span className="font-semibold text-gray-900">
+                      <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Total:</span>
+                      <span className={`font-semibold ${
+                        darkMode ? 'text-white' : 'text-gray-900'
+                      }`}>
                         ${parseFloat(splitFormData.totalAmount || "0").toFixed(2)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm mt-2">
-                      <span className="text-gray-600">Allocated:</span>
-                      <span className="font-semibold text-gray-900">
+                      <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Allocated:</span>
+                      <span className={`font-semibold ${
+                        darkMode ? 'text-white' : 'text-gray-900'
+                      }`}>
                         ${splitItems.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0).toFixed(2)}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-sm mt-2 pt-2 border-t border-gray-200">
-                      <span className="text-gray-600">Remaining:</span>
+                    <div className={`flex items-center justify-between text-sm mt-2 pt-2 border-t ${
+                      darkMode ? 'border-gray-600' : 'border-gray-200'
+                    }`}>
+                      <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Remaining:</span>
                       <span className={`font-semibold ${
                         Math.abs(parseFloat(splitFormData.totalAmount || "0") - splitItems.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0)) < 0.01
-                          ? "text-green-600"
-                          : "text-orange-600"
+                          ? darkMode ? "text-green-400" : "text-green-600"
+                          : darkMode ? "text-orange-400" : "text-orange-600"
                       }`}>
                         ${(parseFloat(splitFormData.totalAmount || "0") - splitItems.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0)).toFixed(2)}
                       </span>
@@ -4082,8 +4327,14 @@ export default function FinancePage() {
               </div>
 
               {/* Info Message */}
-              <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-                <p className="text-sm text-purple-800">
+              <div className={`rounded-xl p-4 border ${
+                darkMode
+                  ? 'bg-purple-900/20 border-purple-800'
+                  : 'bg-purple-50 border-purple-200'
+              }`}>
+                <p className={`text-sm ${
+                  darkMode ? 'text-purple-300' : 'text-purple-800'
+                }`}>
                   This will create {splitItems.length} separate transactions with the same description and date. Make sure the split amounts add up to the total amount.
                 </p>
               </div>
@@ -4093,7 +4344,11 @@ export default function FinancePage() {
                 <button
                   type="button"
                   onClick={() => setShowSplitModal(false)}
-                  className="flex-1 py-2.5 bg-white hover:bg-gray-50 text-gray-700 font-medium text-sm rounded-lg transition-all border border-gray-300"
+                  className={`flex-1 py-2.5 font-medium text-sm rounded-lg transition-all border ${
+                    darkMode
+                      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600'
+                      : 'bg-white hover:bg-gray-50 text-gray-700 border-gray-300'
+                  }`}
                 >
                   Cancel
                 </button>
@@ -4119,7 +4374,7 @@ export default function FinancePage() {
       {/* Receipt Viewer Modal */}
       {showReceiptViewer && viewingReceiptId && receiptImages[viewingReceiptId] && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto"
           onClick={() => {
             setShowReceiptViewer(false);
             setViewingReceiptId(null);
@@ -4128,21 +4383,33 @@ export default function FinancePage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl p-6 max-w-4xl w-full shadow-xl relative"
+            className={`rounded-lg p-6 max-w-4xl w-full shadow-lg relative my-8 max-h-[90vh] overflow-y-auto ${
+              darkMode ? 'bg-gray-800' : 'bg-white'
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <Image className="w-5 h-5 text-purple-600" />
+                <div className={`p-2 rounded-lg ${
+                  darkMode ? 'bg-purple-900/30' : 'bg-purple-100'
+                }`}>
+                  <Image className={`w-5 h-5 ${
+                    darkMode ? 'text-purple-400' : 'text-purple-600'
+                  }`} />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">Receipt</h2>
+                <h2 className={`text-xl font-bold ${
+                  darkMode ? 'text-white' : 'text-gray-900'
+                }`}>Receipt</h2>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => deleteReceipt(viewingReceiptId)}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                  className={`p-2 rounded-lg transition-all ${
+                    darkMode
+                      ? 'text-red-400 hover:bg-red-900/20'
+                      : 'text-red-500 hover:bg-red-50'
+                  }`}
                   title="Delete receipt"
                 >
                   <Trash2 className="w-5 h-5" />
@@ -4152,15 +4419,21 @@ export default function FinancePage() {
                     setShowReceiptViewer(false);
                     setViewingReceiptId(null);
                   }}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-all"
+                  className={`p-2 rounded-lg transition-all ${
+                    darkMode
+                      ? 'hover:bg-gray-700 text-gray-400'
+                      : 'hover:bg-gray-100 text-gray-500'
+                  }`}
                 >
-                  <X className="w-5 h-5 text-gray-500" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
             {/* Receipt Image */}
-            <div className="max-h-[70vh] overflow-auto rounded-xl border border-gray-200">
+            <div className={`max-h-[70vh] overflow-auto rounded-xl border ${
+              darkMode ? 'border-gray-600' : 'border-gray-200'
+            }`}>
               <img
                 src={receiptImages[viewingReceiptId]}
                 alt="Receipt"
