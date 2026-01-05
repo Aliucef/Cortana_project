@@ -3,13 +3,17 @@ Health & Gym Routes - API endpoints for gym onboarding, workouts, and tracking
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List, Optional, Dict
 from datetime import date, datetime
 from pydantic import BaseModel, Field
 
 from config.database import get_db
 from services.health_agent import HealthAgent
 from services.workout_program_generator import WorkoutProgramGenerator
+from services.ai_workout_generator import AIWorkoutGenerator
+from services.ai_progress_analyzer import AIProgressAnalyzer
+from services.fitness_chat_assistant import FitnessChatAssistant
+from services.workout_nlp_logger import WorkoutNLPLogger
 from models.workout import (
     UserGymProfile, WorkoutPlan, WorkoutLog, WeightLog, GymSchedule,
     WorkoutGoal, ExperienceLevel, EquipmentAccess, TrainingSplit, PreferredTime
@@ -40,6 +44,25 @@ class WeightLogCreate(BaseModel):
     measurements: Optional[dict] = None
     weigh_in_date: date
     notes: Optional[str] = None
+
+
+class AIWorkoutRequest(BaseModel):
+    """Request model for AI workout generation"""
+    description: str = Field(..., description="Natural language description of workout goals and constraints")
+    weeks: int = Field(default=4, ge=1, le=12, description="Number of weeks to generate")
+
+
+class ChatRequest(BaseModel):
+    """Request model for fitness chat"""
+    user_id: int = Field(..., description="User ID")
+    message: str = Field(..., description="User's question or message")
+    conversation_history: Optional[List[Dict[str, str]]] = Field(default=None, description="Previous messages")
+
+
+class NLWorkoutRequest(BaseModel):
+    """Request model for natural language workout logging"""
+    user_id: int = Field(..., description="User ID")
+    message: str = Field(..., description="Natural language workout description")
 
 
 class WorkoutLogCreate(BaseModel):
@@ -237,6 +260,244 @@ def generate_workout_plan(
         "weeks": weeks,
         "total_workouts": len(workout_plans)
     }
+
+
+@router.post("/workout-plan/ai-generate/{user_id}", tags=["workout", "ai"])
+def ai_generate_workout_plan(
+    user_id: int,
+    request: AIWorkoutRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Generate a personalized workout plan using AI
+
+    This endpoint uses Groq AI to create intelligent, context-aware workout plans
+    based on natural language descriptions.
+
+    Example request:
+    {
+        "description": "I want to build muscle, workout 4 days/week, have dumbbells and bench,
+                       intermediate level, bad left shoulder",
+        "weeks": 4
+    }
+    """
+    try:
+        # Initialize AI generator
+        ai_generator = AIWorkoutGenerator(db)
+
+        if not ai_generator.is_available():
+            raise HTTPException(
+                status_code=503,
+                detail="AI service is currently unavailable. Please use the standard workout generator."
+            )
+
+        # Generate AI workout plan
+        workout_plans = ai_generator.generate_from_description(
+            user_id=user_id,
+            description=request.description,
+            weeks=request.weeks
+        )
+
+        return {
+            "message": f"AI generated {len(workout_plans)} workout sessions",
+            "weeks": request.weeks,
+            "total_workouts": len(workout_plans),
+            "description": request.description[:100],
+            "ai_powered": True
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate AI workout plan: {str(e)}"
+        )
+
+
+@router.get("/ai/analyze/{user_id}", tags=["ai", "analytics"])
+def analyze_progress(
+    user_id: int,
+    period_days: int = Query(default=30, ge=7, le=90, description="Analysis period in days (7-90)"),
+    db: Session = Depends(get_db)
+):
+    """
+    AI-powered progress analysis
+
+    Analyzes user's workout history, weight logs, PRs, and provides intelligent insights.
+
+    Features:
+    - Progress summary and overall assessment
+    - Plateau detection (strength and weight)
+    - Volume analysis by muscle group
+    - Recovery insights and warnings
+    - Personalized recommendations
+    - Progress score (0-100)
+
+    Args:
+        user_id: User ID
+        period_days: Analysis period in days (default 30, min 7, max 90)
+
+    Returns:
+        {
+            "summary": "Overall progress assessment",
+            "insights": [{"type": "positive/warning/neutral", "message": "..."}],
+            "recommendations": ["Actionable recommendation 1", "..."],
+            "progress_score": 85,
+            "warnings": ["Warning if any"],
+            "ai_powered": true,
+            "data_points": {"workouts": 42, "weight_logs": 60, "prs": 6, "rest_days": 7}
+        }
+    """
+    try:
+        # Initialize AI analyzer
+        analyzer = AIProgressAnalyzer(db)
+
+        if not analyzer.is_available():
+            raise HTTPException(
+                status_code=503,
+                detail="AI service is currently unavailable"
+            )
+
+        # Perform analysis
+        analysis = analyzer.analyze_progress(user_id, period_days)
+
+        return analysis
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to analyze progress: {str(e)}"
+        )
+
+
+@router.post("/ai/chat", tags=["ai", "chat"])
+def fitness_chat(
+    request: ChatRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    AI-powered fitness chat assistant
+
+    Ask questions about fitness, training, nutrition, and get personalized answers
+    based on your workout history, goals, and progress.
+
+    Features:
+    - Context-aware responses using your data
+    - Exercise guidance and form tips
+    - Goal setting advice
+    - Training plan suggestions
+    - Nutrition and recovery advice
+
+    Args:
+        request: {
+            "user_id": 1,
+            "message": "How can I improve my bench press?",
+            "conversation_history": [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]
+        }
+
+    Returns:
+        {
+            "message": "AI response",
+            "sources": ["Your gym profile", "Your last 10 workouts", "5 personal records"],
+            "suggestions": ["Follow-up question 1", "Follow-up question 2"],
+            "ai_powered": true
+        }
+    """
+    try:
+        # Initialize chat assistant
+        assistant = FitnessChatAssistant(db)
+
+        if not assistant.is_available():
+            raise HTTPException(
+                status_code=503,
+                detail="AI service is currently unavailable"
+            )
+
+        # Get chat response
+        response = assistant.chat(
+            user_id=request.user_id,
+            message=request.message,
+            conversation_history=request.conversation_history
+        )
+
+        return response
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Chat failed: {str(e)}"
+        )
+
+
+@router.post("/ai/log-workout", tags=["ai", "workout"])
+def log_workout_nl(
+    request: NLWorkoutRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Log workout using natural language
+
+    Parse conversational workout descriptions and automatically log them to the database.
+    Perfect for voice input or quick manual logging.
+
+    Features:
+    - Understands various formats: "3x10", "3 sets of 10", "10 reps x 3 sets"
+    - Fuzzy matches exercise names
+    - Handles multiple exercises in one message
+    - Supports weights in kg or lbs (converts automatically)
+
+    Examples:
+        - "I did 3 sets of 10 bench press at 80kg"
+        - "Just finished squats: 5x5 at 120kg"
+        - "Leg day: squats 100kg 5x5, leg press 150kg 4x12, lunges 3x10 each leg"
+        - "Ran for 30 minutes"
+
+    Args:
+        request: {
+            "user_id": 1,
+            "message": "I did 3 sets of 10 bench press at 80kg and 4 sets of 12 squats at 100kg"
+        }
+
+    Returns:
+        {
+            "message": "Logged 2 exercises",
+            "logged_exercises": [
+                {"exercise": "Bench Press", "sets": 3, "reps": 10, "weight": 80},
+                {"exercise": "Squats", "sets": 4, "reps": 12, "weight": 100}
+            ],
+            "ai_powered": true
+        }
+    """
+    try:
+        # Initialize NLP logger
+        logger = WorkoutNLPLogger(db)
+
+        if not logger.is_available():
+            raise HTTPException(
+                status_code=503,
+                detail="AI service is currently unavailable"
+            )
+
+        # Parse and log workout
+        result = logger.log_workout(
+            user_id=request.user_id,
+            message=request.message
+        )
+
+        return result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Workout logging failed: {str(e)}"
+        )
 
 
 @router.get("/workout-plan/{user_id}", tags=["workout"])

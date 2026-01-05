@@ -1121,7 +1121,7 @@ export default function FinancePage() {
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${
+      <div className={`min-h-screen flex items-center justify-center pt-24 ${
         darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-slate-50 via-white to-blue-50'
       }`}>
         <motion.div
@@ -1136,7 +1136,7 @@ export default function FinancePage() {
   }
 
   return (
-    <div className={`min-h-screen p-8 transition-colors duration-300 ${
+    <div className={`min-h-screen p-8 pt-24 transition-colors duration-300 ${
       darkMode ? 'bg-gray-900' : 'bg-gray-50'
     }`}>
       <div className="max-w-7xl mx-auto">
@@ -1205,7 +1205,10 @@ export default function FinancePage() {
                 Monthly
               </button>
               <button
-                onClick={() => setShowDatePicker(!showDatePicker)}
+                onClick={() => {
+                  setPeriod("custom");
+                  setShowDatePicker(!showDatePicker);
+                }}
                 className={`px-5 py-2 rounded-md font-medium text-sm transition-all flex items-center gap-2 ${
                   period === "custom"
                     ? darkMode
@@ -2744,13 +2747,6 @@ export default function FinancePage() {
                   </button>
                 )}
               </div>
-
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="p-2.5 bg-gradient-to-br from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-xl transition-all hover:scale-105 shadow-lg shadow-blue-200/50"
-              >
-                <Plus className="w-5 h-5" />
-              </button>
             </div>
           </div>
 

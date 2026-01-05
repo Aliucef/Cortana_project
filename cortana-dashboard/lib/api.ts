@@ -3,7 +3,7 @@
  * Connects Next.js dashboard to FastAPI backend
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
 
 // Default user ID (single-user system)
 const DEFAULT_USER_ID = 1;
@@ -531,22 +531,71 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   timestamp: string;
+  sources?: string[];
+  suggestions?: string[];
 }
 
 export interface ChatResponse {
-  response: string;
-  intent?: string;
-  confidence?: number;
+  message?: string;  // For fitness AI
+  response?: string; // For general AI
+  sources?: string[];
+  suggestions?: string[];
+  ai_powered?: boolean;
 }
 
 /**
- * Send message to AI chat
+ * Send message to general AI chat (handles everything: finance, workouts, news, etc.)
  */
 export async function sendChatMessage(
   message: string,
+  conversationHistory?: Array<{ role: string; content: string }>,
   userId: number = DEFAULT_USER_ID
 ): Promise<ChatResponse> {
-  return apiCall("/ai/chat", {
+  return apiCall("/ai-chat/chat", {
+    method: "POST",
+    body: JSON.stringify({
+      user_id: userId,
+      message: message,
+    }),
+  });
+}
+
+/**
+ * Send message to Fitness AI chat (fitness-focused with sources and suggestions)
+ */
+export async function sendFitnessChatMessage(
+  message: string,
+  conversationHistory?: Array<{ role: string; content: string }>,
+  userId: number = DEFAULT_USER_ID
+): Promise<ChatResponse> {
+  return apiCall("/health/ai/chat", {
+    method: "POST",
+    body: JSON.stringify({
+      user_id: userId,
+      message: message,
+      conversation_history: conversationHistory || null,
+    }),
+  });
+}
+
+/**
+ * Log workout using natural language
+ */
+export async function logWorkoutNL(
+  message: string,
+  userId: number = DEFAULT_USER_ID
+): Promise<{
+  message: string;
+  logged_exercises: Array<{
+    exercise: string;
+    sets?: number;
+    reps?: number;
+    weight?: number;
+    duration_minutes?: number;
+  }>;
+  ai_powered: boolean;
+}> {
+  return apiCall("/health/ai/log-workout", {
     method: "POST",
     body: JSON.stringify({
       user_id: userId,
@@ -683,6 +732,8 @@ export default {
   getNewsFeed,
   // AI Chat
   sendChatMessage,
+  sendFitnessChatMessage,
+  logWorkoutNL,
   // User
   getUser,
   updateUser,

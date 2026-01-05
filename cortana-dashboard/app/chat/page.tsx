@@ -6,17 +6,47 @@ import { Send, Bot, User, Sparkles, Loader2 } from "lucide-react";
 import { sendChatMessage, type ChatMessage } from "@/lib/api";
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      role: "assistant",
-      content: "Hi! I'm Cortana, your AI assistant. How can I help you today?",
-      timestamp: new Date().toISOString(),
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Load messages from localStorage on mount
+  useEffect(() => {
+    const savedMessages = localStorage.getItem("cortana-chat-messages");
+    if (savedMessages) {
+      try {
+        setMessages(JSON.parse(savedMessages));
+      } catch (error) {
+        console.error("Failed to load messages:", error);
+        // If loading fails, set default welcome message
+        setMessages([
+          {
+            role: "assistant",
+            content: "Hi! I'm Cortana, your AI personal assistant. I can help you with finances, workouts, news, and much more. What would you like to know?",
+            timestamp: new Date().toISOString(),
+          },
+        ]);
+      }
+    } else {
+      // No saved messages, show welcome message
+      setMessages([
+        {
+          role: "assistant",
+          content: "Hi! I'm Cortana, your AI personal assistant. I can help you with finances, workouts, news, and much more. What would you like to know?",
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    }
+  }, []);
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem("cortana-chat-messages", JSON.stringify(messages));
+    }
+  }, [messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -44,8 +74,10 @@ export default function ChatPage() {
 
       const assistantMessage: ChatMessage = {
         role: "assistant",
-        content: response.response,
+        content: response.message || response.response || "I'm not sure how to respond to that.",
         timestamp: new Date().toISOString(),
+        sources: response.sources,
+        suggestions: response.suggestions,
       };
 
       setTimeout(() => {
@@ -138,7 +170,7 @@ export default function ChatPage() {
               <div
                 className={`max-w-[70%] ${
                   message.role === "user" ? "items-end" : "items-start"
-                } flex flex-col gap-1`}
+                } flex flex-col gap-2`}
               >
                 <div
                   className={`px-5 py-3.5 rounded-2xl backdrop-blur-xl shadow-lg ${
@@ -148,7 +180,40 @@ export default function ChatPage() {
                   }`}
                 >
                   <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+
+                  {/* Sources (for assistant messages) */}
+                  {message.role === "assistant" && message.sources && message.sources.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <p className="text-xs font-semibold text-gray-500 mb-1.5">Sources:</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {message.sources.map((source, idx) => (
+                          <span
+                            key={idx}
+                            className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-lg border border-blue-200/50"
+                          >
+                            {source}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
+
+                {/* Suggestions (clickable follow-ups) */}
+                {message.role === "assistant" && message.suggestions && message.suggestions.length > 0 && (
+                  <div className="flex flex-wrap gap-2 px-2">
+                    {message.suggestions.map((suggestion, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setInput(suggestion)}
+                        className="text-xs bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 text-gray-700 px-3 py-1.5 rounded-full border border-purple-200/50 transition-all hover:shadow-md"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 <span className="text-xs text-gray-400 px-2 font-medium">
                   {new Date(message.timestamp).toLocaleTimeString([], {
                     hour: "2-digit",

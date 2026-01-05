@@ -1,32 +1,209 @@
 "use client";
 
-import { Bell, User } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Bell, User, Dumbbell, History, Plus, BookOpen, Target, TrendingUp, Bed, BarChart3 } from "lucide-react";
 
 export default function Header() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const isHealthPage = pathname?.startsWith("/health");
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    // Sync with dark mode from localStorage
+    const isDark = localStorage.getItem("darkMode") === "true";
+    setDarkMode(isDark);
+
+    // Listen for dark mode changes
+    const handleStorage = () => {
+      const isDark = localStorage.getItem("darkMode") === "true";
+      setDarkMode(isDark);
+    };
+
+    window.addEventListener("storage", handleStorage);
+    // Also listen for custom dark mode event
+    window.addEventListener("darkModeToggle", handleStorage);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("darkModeToggle", handleStorage);
+    };
+  }, []);
+
+  // Navigate to health sub-pages
+  const navigateTo = (path: string) => {
+    router.push(path);
+  };
+
+  const isActivePage = (path: string) => pathname === path;
+
   return (
-    <header className="fixed top-0 left-16 right-0 h-16 bg-white border-b border-gray-200 z-40">
+    <header className={`fixed top-0 left-16 right-0 h-16 border-b z-40 transition-colors duration-200 ${
+      darkMode ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"
+    }`}>
       <div className="h-full px-6 flex items-center justify-between">
         {/* Brand */}
         <div className="flex items-center gap-3">
-          <h1 className="text-lg font-semibold text-gray-900">
+          <h1 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>
             CORTANA
           </h1>
-          <span className="text-gray-400 text-sm">
+          <span className={`text-sm ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
             Personal AI Assistant
           </span>
         </div>
 
+        {/* Health Page Navigation */}
+        {isHealthPage && (
+          <nav className="flex items-center gap-2 flex-1 justify-center max-w-4xl mx-8">
+            <button
+              onClick={() => navigateTo("/health")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                isActivePage("/health")
+                  ? darkMode
+                    ? "bg-blue-900 text-blue-400"
+                    : "bg-blue-100 text-blue-600"
+                  : darkMode
+                  ? "text-gray-300 hover:text-blue-400 hover:bg-gray-800"
+                  : "text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+              }`}
+              title="Overview & Stats"
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              Overview
+            </button>
+            <button
+              onClick={() => navigateTo("/health/workouts")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                isActivePage("/health/workouts")
+                  ? darkMode
+                    ? "bg-blue-900 text-blue-400"
+                    : "bg-blue-100 text-blue-600"
+                  : darkMode
+                  ? "text-gray-300 hover:text-blue-400 hover:bg-gray-800"
+                  : "text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+              }`}
+              title="Today's Workouts"
+            >
+              <Dumbbell className="w-3.5 h-3.5" />
+              Workouts
+            </button>
+            <button
+              onClick={() => navigateTo("/health/history")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                isActivePage("/health/history")
+                  ? darkMode
+                    ? "bg-blue-900 text-blue-400"
+                    : "bg-blue-100 text-blue-600"
+                  : darkMode
+                  ? "text-gray-300 hover:text-blue-400 hover:bg-gray-800"
+                  : "text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+              }`}
+              title="Workout History"
+            >
+              <History className="w-3.5 h-3.5" />
+              History
+            </button>
+            <button
+              onClick={() => navigateTo("/health/create")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                isActivePage("/health/create")
+                  ? darkMode
+                    ? "bg-blue-900 text-blue-400"
+                    : "bg-blue-100 text-blue-600"
+                  : darkMode
+                  ? "text-gray-300 hover:text-blue-400 hover:bg-gray-800"
+                  : "text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+              }`}
+              title="Create Custom Workout"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Create
+            </button>
+            <button
+              onClick={() => navigateTo("/health/library")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                isActivePage("/health/library")
+                  ? darkMode
+                    ? "bg-blue-900 text-blue-400"
+                    : "bg-blue-100 text-blue-600"
+                  : darkMode
+                  ? "text-gray-300 hover:text-blue-400 hover:bg-gray-800"
+                  : "text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+              }`}
+              title="Exercise Library"
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              Library
+            </button>
+            <button
+              onClick={() => navigateTo("/health/goals")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                isActivePage("/health/goals")
+                  ? darkMode
+                    ? "bg-blue-900 text-blue-400"
+                    : "bg-blue-100 text-blue-600"
+                  : darkMode
+                  ? "text-gray-300 hover:text-blue-400 hover:bg-gray-800"
+                  : "text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+              }`}
+              title="Fitness Goals"
+            >
+              <Target className="w-3.5 h-3.5" />
+              Goals
+            </button>
+            <button
+              onClick={() => navigateTo("/health/progress")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                isActivePage("/health/progress")
+                  ? darkMode
+                    ? "bg-blue-900 text-blue-400"
+                    : "bg-blue-100 text-blue-600"
+                  : darkMode
+                  ? "text-gray-300 hover:text-blue-400 hover:bg-gray-800"
+                  : "text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+              }`}
+              title="Progress Tracking"
+            >
+              <TrendingUp className="w-3.5 h-3.5" />
+              Progress
+            </button>
+            <button
+              onClick={() => navigateTo("/health/rest")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                isActivePage("/health/rest")
+                  ? darkMode
+                    ? "bg-blue-900 text-blue-400"
+                    : "bg-blue-100 text-blue-600"
+                  : darkMode
+                  ? "text-gray-300 hover:text-blue-400 hover:bg-gray-800"
+                  : "text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+              }`}
+              title="Rest Days"
+            >
+              <Bed className="w-3.5 h-3.5" />
+              Rest
+            </button>
+          </nav>
+        )}
+
         {/* Right side */}
         <div className="flex items-center gap-3">
           {/* Notifications */}
-          <button className="relative w-9 h-9 rounded-lg hover:bg-gray-100 flex items-center justify-center transition-colors">
-            <Bell className="w-5 h-5 text-gray-600" />
+          <button className={`relative w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+            darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
+          }`}>
+            <Bell className={`w-5 h-5 ${darkMode ? "text-gray-400" : "text-gray-600"}`} />
             <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
           </button>
 
           {/* User */}
-          <button className="w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
-            <User className="w-5 h-5 text-gray-600" />
+          <button className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+            darkMode
+              ? "bg-gray-800 hover:bg-gray-700"
+              : "bg-gray-100 hover:bg-gray-200"
+          }`}>
+            <User className={`w-5 h-5 ${darkMode ? "text-gray-400" : "text-gray-600"}`} />
           </button>
         </div>
       </div>

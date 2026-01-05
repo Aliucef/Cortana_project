@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config.database import engine, Base
 from config.settings import get_settings
-from routes import users, finance, news, workout, finance_agent, ai_chat, budget, health, recurring_expenses
+from routes import users, finance, news, workout, finance_agent, ai_chat, budget, health, recurring_expenses, health_dashboard
 from routes import scheduler as scheduler_routes
 from services.scheduler_service import SchedulerService
 from services.telegram_service import TelegramService
@@ -12,7 +12,10 @@ import threading
 # Import models to ensure they're registered
 from models.budget import Budget, CategoryGoal
 from models.user_preferences import UserSchedulePreference
-from models.workout import UserGymProfile, WorkoutPlan, WorkoutLog, WeightLog, GymSchedule
+from models.workout import (
+    UserGymProfile, WorkoutPlan, WorkoutLog, WeightLog, GymSchedule,
+    PersonalRecord, WorkoutNote, RestDay, Exercise, WorkoutTemplate
+)
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -40,9 +43,10 @@ async def startup_event():
     scheduler.start()
 
     # Start Telegram bot in background
-    if settings.telegram_bot_token:
-        asyncio.create_task(telegram_bot.start_polling())
-        print("Telegram bot started!")
+    # Temporarily disabled to prevent conflict errors
+    # if settings.telegram_bot_token:
+    #     asyncio.create_task(telegram_bot.start_polling())
+    #     print("Telegram bot started!")
 
 # Shutdown event
 @app.on_event("shutdown")
@@ -73,6 +77,7 @@ app.include_router(finance_agent.router)
 app.include_router(ai_chat.router)
 app.include_router(budget.router)
 app.include_router(health.router, prefix="/health", tags=["health"])
+app.include_router(health_dashboard.router, prefix="/health", tags=["health-dashboard"])
 app.include_router(scheduler_routes.router)
 app.include_router(recurring_expenses.router)
 
@@ -98,6 +103,6 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8000,
+        port=8001,
         reload=settings.debug
     )

@@ -460,7 +460,7 @@ class WorkoutProgramGenerator:
 
     def get_current_week_workouts(self, user_id: int) -> List[WorkoutPlan]:
         """Get this week's workout plans for a user"""
-        from datetime import datetime, timedelta
+        from datetime import datetime, timedelta, timezone
 
         # Calculate current week number since program start
         first_plan = self.db.query(WorkoutPlan).filter(
@@ -470,8 +470,15 @@ class WorkoutProgramGenerator:
         if not first_plan:
             return []
 
-        # Calculate week number
-        weeks_since_start = (datetime.now() - first_plan.created_at).days // 7
+        # Calculate week number - make datetime timezone-aware
+        now = datetime.now(timezone.utc)
+        created_at = first_plan.created_at
+
+        # If created_at is naive, make it aware
+        if created_at.tzinfo is None:
+            created_at = created_at.replace(tzinfo=timezone.utc)
+
+        weeks_since_start = (now - created_at).days // 7
         current_week = (weeks_since_start % 4) + 1  # Cycle through 4 weeks
 
         # Get workouts for current week

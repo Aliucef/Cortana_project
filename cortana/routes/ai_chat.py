@@ -416,13 +416,27 @@ async def whatsapp_webhook(
 
 
 @router.post("/chat")
-def chat_with_ai(chat: ChatMessage):
+async def chat_with_ai(chat: ChatMessage, db: Session = Depends(get_db)):
     """
-    General chat endpoint - talk to Cortana about anything
+    General chat endpoint - Uses THE EXACT SAME AI as Telegram
     """
-    ai_service = AIService()
-    response = ai_service.generate_conversational_response(chat.message)
+    import asyncio
+    from services.telegram_message_handler import process_telegram_message
 
-    return {
-        "response": response
-    }
+    # Use the EXACT same function that Telegram uses
+    try:
+        response = await process_telegram_message(
+            user_id=chat.user_id,
+            message_text=chat.message,
+            db=db,
+            context_data={}
+        )
+
+        # Handle if response is a dict (export requests, etc.)
+        if isinstance(response, dict):
+            return {"response": str(response)}
+
+        return {"response": response}
+    except Exception as e:
+        logger.error(f"Chat error: {e}")
+        return {"response": "Sorry, I encountered an error. Please try again."}
