@@ -23,6 +23,7 @@ import {
   getWorkoutLogs,
   updateWorkoutPlan,
   deleteWorkoutPlan,
+  deleteAllWorkouts,
 } from "@/lib/health-api";
 
 // Comprehensive Exercise Library
@@ -435,6 +436,7 @@ export default function WorkoutsPage() {
   const [editWorkoutExercises, setEditWorkoutExercises] = useState<any[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [workoutToDelete, setWorkoutToDelete] = useState<any>(null);
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
 
   useEffect(() => {
     // Check dark mode from localStorage
@@ -658,6 +660,20 @@ export default function WorkoutsPage() {
     } catch (error) {
       console.error("Error deleting workout:", error);
       alert("Failed to delete workout. Please try again.");
+    }
+  }
+
+  async function handleDeleteAllWorkouts() {
+    try {
+      const result = await deleteAllWorkouts(userId);
+
+      // Refresh data
+      await fetchData();
+      setShowDeleteAllConfirm(false);
+      alert(`Successfully deleted ${result.count} workout plans!`);
+    } catch (error) {
+      console.error("Error deleting all workouts:", error);
+      alert("Failed to delete workouts. Please try again.");
     }
   }
 
@@ -907,13 +923,24 @@ export default function WorkoutsPage() {
             >
               Your Workouts
             </h3>
-            <button
-              onClick={() => setShowCustomWorkoutModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold text-sm rounded-lg transition-all hover:scale-105 shadow-lg"
-            >
-              <Plus className="w-4 h-4" />
-              Create Workout
-            </button>
+            <div className="flex items-center gap-3">
+              {currentWeekWorkouts?.workouts && currentWeekWorkouts.workouts.length > 0 && (
+                <button
+                  onClick={() => setShowDeleteAllConfirm(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg transition-all hover:scale-105 shadow-lg"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete All
+                </button>
+              )}
+              <button
+                onClick={() => setShowCustomWorkoutModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold text-sm rounded-lg transition-all hover:scale-105 shadow-lg"
+              >
+                <Plus className="w-4 h-4" />
+                Create Workout
+              </button>
+            </div>
           </div>
 
           <div className="space-y-4">
@@ -1867,6 +1894,69 @@ export default function WorkoutsPage() {
                   className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg transition-all"
                 >
                   Delete Workout
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Delete All Confirmation Modal */}
+        {showDeleteAllConfirm && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowDeleteAllConfirm(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className={`rounded-lg p-6 max-w-md w-full shadow-lg ${
+                darkMode ? "bg-gray-800" : "bg-white"
+              }`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Icon */}
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                  <Trash2 className="w-8 h-8 text-red-600" />
+                </div>
+              </div>
+
+              {/* Title */}
+              <h2 className={`text-2xl font-bold text-center mb-2 ${darkMode ? "text-white" : "text-gray-900"}`}>
+                Delete All Workouts?
+              </h2>
+
+              {/* Description */}
+              <p className={`text-center mb-6 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                Are you sure you want to delete <strong>ALL {currentWeekWorkouts?.total_workouts || 0} workout plans</strong>? This action cannot be undone.
+              </p>
+
+              {/* Warning */}
+              <div className={`border-l-4 border-red-500 rounded p-4 mb-6 ${
+                darkMode ? "bg-red-900/20" : "bg-red-50"
+              }`}>
+                <p className={`text-sm font-semibold ${darkMode ? "text-red-400" : "text-red-800"}`}>
+                  Warning: This will permanently delete all your workout plans!
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteAllConfirm(false)}
+                  className={`flex-1 py-2.5 rounded-lg font-semibold text-sm transition-all ${
+                    darkMode
+                      ? "bg-gray-700 hover:bg-gray-600 text-white"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteAllWorkouts}
+                  className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg transition-all"
+                >
+                  Delete All
                 </button>
               </div>
             </motion.div>

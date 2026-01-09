@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from datetime import datetime
 from config.database import get_db
@@ -7,6 +8,17 @@ from api.schemas import WorkoutPlanCreate, WorkoutPlanResponse
 from typing import List
 
 router = APIRouter(prefix="/workout", tags=["workout"])
+
+
+@router.delete("/bulk-delete/{user_id}")
+def delete_all_workouts(user_id: int, db: Session = Depends(get_db)):
+    """Delete all workout plans for a user"""
+    deleted_count = db.query(WorkoutPlan).filter(WorkoutPlan.user_id == user_id).delete()
+    db.commit()
+    return JSONResponse(
+        status_code=200,
+        content={"message": f"Deleted {deleted_count} workout plans", "count": deleted_count}
+    )
 
 
 @router.post("/", response_model=WorkoutPlanResponse, status_code=status.HTTP_201_CREATED)
@@ -80,7 +92,32 @@ def mark_workout_complete(plan_id: int, db: Session = Depends(get_db)):
     return plan
 
 
-@router.delete("/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.put("/{plan_id}", response_model=WorkoutPlanResponse)
+def update_workout_plan(
+    plan_id: int,
+    plan_update: dict,
+    db: Session = Depends(get_db)
+):
+    """Update a workout plan"""
+    plan = db.query(WorkoutPlan).filter(WorkoutPlan.id == plan_id).first()
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Workout plan not found"
+        )
+
+    # Update fields if provided
+    for key, value in plan_update.items():
+        if hasattr(plan, key):
+            setattr(plan, key, value)
+
+    db.commit()
+    db.refresh(plan)
+
+    return plan
+
+
+@router.delete("/{plan_id}")
 def delete_workout_plan(plan_id: int, db: Session = Depends(get_db)):
     """Delete a workout plan"""
     plan = db.query(WorkoutPlan).filter(WorkoutPlan.id == plan_id).first()
@@ -92,4 +129,7 @@ def delete_workout_plan(plan_id: int, db: Session = Depends(get_db)):
 
     db.delete(plan)
     db.commit()
-    return None
+    return JSONResponse(
+        status_code=200,
+        content={"message": "Workout plan deleted successfully", "plan_id": plan_id}
+    )

@@ -147,32 +147,39 @@
 
 ## ⏸️ PAUSED: Frontend UI Integration (Phase 5)
 
-### Phase 5.1: AI Workout Generator Button (Create Page)
+### Phase 5.1: AI Workout Generator Button (Create Page) ✅ COMPLETE
 **Location**: `cortana-dashboard/app/health/create/page.tsx`
-**Status**: NOT STARTED
+**Status**: COMPLETE
 
-**TODO**:
-- [ ] Add "Generate with AI" button to Create page
-- [ ] Create modal component with text area for description
-- [ ] Connect to `POST /health/workout-plan/ai-generate/{user_id}`
-- [ ] Show loading state during generation
-- [ ] Display generated workouts preview
-- [ ] Add save/regenerate actions
+**Completed Features**:
+- [x] Add "Generate with AI" button to Create page (prominent purple/blue gradient card)
+- [x] Create modal component with textarea for description
+- [x] Connect to `POST /health/workout-plan/ai-generate/{user_id}`
+- [x] Show loading state during generation (spinner animation)
+- [x] Display generated workouts preview (first 3 workouts shown)
+- [x] Add save action with success alert
+- [x] Example text to guide users
+- [x] Classic balanced design matching dashboard
+- [x] Close modal on background click
+- [x] Dark mode support
 
 ---
 
-### Phase 5.2: Progress Insights Card (Main Health Page)
+### Phase 5.2: Progress Insights Card (Main Health Page) ✅ COMPLETE
 **Location**: `cortana-dashboard/app/health/page.tsx`
-**Status**: NOT STARTED
+**Status**: COMPLETE
 
-**TODO**:
-- [ ] Add "AI Insights" card to dashboard
-- [ ] Connect to `GET /health/ai/analyze/{user_id}?period_days=30`
-- [ ] Display summary and top 3 insights
-- [ ] Color-coded insights (green=positive, yellow=warning, gray=neutral)
-- [ ] Progress score visualization (circular progress or bar)
-- [ ] Add refresh button
-- [ ] Style with gradient/accent colors
+**Completed Features**:
+- [x] Add "AI Insights" card to dashboard
+- [x] Connect to `GET /health/ai/analyze/{user_id}?period_days=30`
+- [x] Display top 2 insights and 1 recommendation
+- [x] Color-coded insights (green=positive, yellow=warning, blue=neutral)
+- [x] Progress score visualization with progress bar
+- [x] Add refresh button with loading animation
+- [x] Classic balanced design matching dashboard style
+- [x] Two-card layout: Progress Score + Key Insights
+- [x] Hover effects and smooth animations
+- [x] Dark mode support
 
 ---
 
@@ -193,17 +200,22 @@
 
 ---
 
-### Phase 5.4: Quick Log Input (History Page)
+### Phase 5.3: Quick Log Input (History Page) ✅ COMPLETE
 **Location**: `cortana-dashboard/app/health/history/page.tsx`
-**Status**: NOT STARTED
+**Status**: COMPLETE
 
-**TODO**:
-- [ ] Add text input field to History page: "What did you do today?"
-- [ ] Connect to `POST /health/ai/log-workout`
-- [ ] Show parsed exercises preview
-- [ ] Confirm → save to database
-- [ ] Update history list immediately
-- [ ] Add voice input button (optional)
+**Completed Features**:
+- [x] Add text input field to History page: "What did you do today?"
+- [x] Connect to `POST /health/ai/log-workout`
+- [x] Show parsed exercises preview
+- [x] Auto-save to database and refresh history
+- [x] Success animation with checkmark
+- [x] Loading state with spinner
+- [x] Preview shows all logged exercises with details
+- [x] Auto-clears input after successful log
+- [x] Press Enter to submit
+- [x] Classic balanced design with purple/blue gradient
+- [x] Dark mode support
 
 ---
 

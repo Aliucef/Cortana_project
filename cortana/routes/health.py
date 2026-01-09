@@ -583,6 +583,14 @@ def mark_workout_complete(plan_id: int, db: Session = Depends(get_db)):
     return {"message": "Workout marked as complete!", "plan_id": plan_id}
 
 
+@router.delete("/workout-plan/delete-all/{user_id}", tags=["workout"])
+def delete_all_workout_plans(user_id: int, db: Session = Depends(get_db)):
+    """Delete all workout plans for a user"""
+    deleted_count = db.query(WorkoutPlan).filter(WorkoutPlan.user_id == user_id).delete()
+    db.commit()
+    return {"message": f"Deleted {deleted_count} workout plans", "count": deleted_count}
+
+
 # ==================== Workout Logging Endpoints ====================
 
 @router.post("/workout-log", tags=["workout"])

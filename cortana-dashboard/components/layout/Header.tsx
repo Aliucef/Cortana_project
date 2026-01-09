@@ -2,12 +2,13 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Bell, User, Dumbbell, History, Plus, BookOpen, Target, TrendingUp, Bed, BarChart3 } from "lucide-react";
+import { Bell, User, Dumbbell, History, Plus, BookOpen, Target, TrendingUp, Bed, BarChart3, LayoutDashboard, Receipt, Repeat, DollarSign } from "lucide-react";
 
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const isHealthPage = pathname?.startsWith("/health");
+  const isFinancePage = pathname?.startsWith("/finance");
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
@@ -52,6 +53,76 @@ export default function Header() {
             Personal AI Assistant
           </span>
         </div>
+
+        {/* Finance Page Navigation */}
+        {isFinancePage && (
+          <nav className="flex items-center gap-2 flex-1 justify-center max-w-4xl mx-8">
+            <button
+              onClick={() => navigateTo("/finance/dashboard")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                isActivePage("/finance/dashboard")
+                  ? darkMode
+                    ? "bg-blue-900 text-blue-400"
+                    : "bg-blue-100 text-blue-600"
+                  : darkMode
+                  ? "text-gray-300 hover:text-blue-400 hover:bg-gray-800"
+                  : "text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+              }`}
+              title="Finance Dashboard"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              Dashboard
+            </button>
+            <button
+              onClick={() => navigateTo("/finance/transactions")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                isActivePage("/finance/transactions")
+                  ? darkMode
+                    ? "bg-blue-900 text-blue-400"
+                    : "bg-blue-100 text-blue-600"
+                  : darkMode
+                  ? "text-gray-300 hover:text-blue-400 hover:bg-gray-800"
+                  : "text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+              }`}
+              title="Transactions"
+            >
+              <Receipt className="w-3.5 h-3.5" />
+              Transactions
+            </button>
+            <button
+              onClick={() => navigateTo("/finance/budget-goals")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                isActivePage("/finance/budget-goals")
+                  ? darkMode
+                    ? "bg-blue-900 text-blue-400"
+                    : "bg-blue-100 text-blue-600"
+                  : darkMode
+                  ? "text-gray-300 hover:text-blue-400 hover:bg-gray-800"
+                  : "text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+              }`}
+              title="Budget & Goals"
+            >
+              <Target className="w-3.5 h-3.5" />
+              Budget & Goals
+            </button>
+            <button
+              onClick={() => navigateTo("/finance/recurring")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                isActivePage("/finance/recurring")
+                  ? darkMode
+                    ? "bg-blue-900 text-blue-400"
+                    : "bg-blue-100 text-blue-600"
+                  : darkMode
+                  ? "text-gray-300 hover:text-blue-400 hover:bg-gray-800"
+                  : "text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+              }`}
+              title="Recurring Expenses"
+            >
+              <Repeat className="w-3.5 h-3.5" />
+              Recurring
+            </button>
+          </nav>
+        )}
 
         {/* Health Page Navigation */}
         {isHealthPage && (

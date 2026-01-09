@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8888";
 
 // ==================== Gym Profile APIs ====================
 
@@ -42,6 +42,19 @@ export async function generateWorkoutPlan(userId: number, weeks: number = 4) {
   return res.json();
 }
 
+export async function generateAIWorkoutPlan(userId: number, description: string) {
+  const res = await fetch(
+    `${API_BASE_URL}/health/workout-plan/ai-generate/${userId}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ description }),
+    }
+  );
+  if (!res.ok) throw new Error("Failed to generate AI workout plan");
+  return res.json();
+}
+
 export async function getWorkoutPlans(userId: number, weekNumber?: number) {
   const url = weekNumber
     ? `${API_BASE_URL}/health/workout-plan/${userId}?week_number=${weekNumber}`
@@ -71,7 +84,7 @@ export async function markWorkoutComplete(planId: number) {
 }
 
 export async function updateWorkoutPlan(planId: number, workoutData: any) {
-  const res = await fetch(`${API_BASE_URL}/health/workout-plan/${planId}`, {
+  const res = await fetch(`${API_BASE_URL}/workout/${planId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(workoutData),
@@ -81,10 +94,20 @@ export async function updateWorkoutPlan(planId: number, workoutData: any) {
 }
 
 export async function deleteWorkoutPlan(planId: number) {
-  const res = await fetch(`${API_BASE_URL}/health/workout-plan/${planId}`, {
+  const res = await fetch(`${API_BASE_URL}/workout/${planId}`, {
     method: "DELETE",
   });
   if (!res.ok) throw new Error("Failed to delete workout plan");
+  // Handle empty response (204 No Content)
+  const text = await res.text();
+  return text ? JSON.parse(text) : { message: "Deleted successfully" };
+}
+
+export async function deleteAllWorkouts(userId: number) {
+  const res = await fetch(`${API_BASE_URL}/health/workout-plan/delete-all/${userId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Failed to delete all workouts");
   return res.json();
 }
 
@@ -466,5 +489,65 @@ export async function getWorkoutHistory(
     `${API_BASE_URL}/health/history/${userId}${query ? `?${query}` : ""}`
   );
   if (!res.ok) throw new Error("Failed to fetch workout history");
+  return res.json();
+}
+
+// ==================== AI Progress Insights API ====================
+
+export interface ProgressInsight {
+  type: "positive" | "warning" | "neutral";
+  message: string;
+}
+
+export interface AIProgressAnalysis {
+  progress_score: number;
+  summary: string;
+  insights: ProgressInsight[];
+  recommendations: string[];
+  warnings: string[];
+  data_points: {
+    workouts: number;
+    weight_logs: number;
+    prs: number;
+    rest_days: number;
+  };
+}
+
+export async function getAIProgressInsights(
+  userId: number,
+  periodDays: number = 30
+): Promise<AIProgressAnalysis> {
+  const res = await fetch(
+    `${API_BASE_URL}/health/ai/analyze/${userId}?period_days=${periodDays}`
+  );
+  if (!res.ok) throw new Error("Failed to fetch AI progress insights");
+  return res.json();
+}
+
+// ==================== AI Workout Logger API ====================
+
+export interface LoggedExercise {
+  exercise: string;
+  sets: number;
+  reps: number;
+  weight: number;
+}
+
+export interface AIWorkoutLogResponse {
+  message: string;
+  logged_exercises: LoggedExercise[];
+  ai_powered: boolean;
+}
+
+export async function logWorkoutWithAI(
+  userId: number,
+  message: string
+): Promise<AIWorkoutLogResponse> {
+  const res = await fetch(`${API_BASE_URL}/health/ai/log-workout`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId, message }),
+  });
+  if (!res.ok) throw new Error("Failed to log workout with AI");
   return res.json();
 }

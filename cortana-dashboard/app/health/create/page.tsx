@@ -16,8 +16,10 @@ import {
   Search,
   Trash2,
   Loader2,
+  Sparkles,
+  Brain,
 } from "lucide-react";
-import { getWorkoutTemplates, WorkoutTemplate } from "@/lib/health-api";
+import { getWorkoutTemplates, WorkoutTemplate, generateAIWorkoutPlan } from "@/lib/health-api";
 
 // Workout Templates Data
 const WORKOUT_TEMPLATES = [
@@ -184,6 +186,7 @@ const EXERCISE_LIBRARY = {
 
 export default function CreatePage() {
   const [darkMode, setDarkMode] = useState(false);
+  const userId = 1;
 
   // API state
   const [templates, setTemplates] = useState<WorkoutTemplate[]>([]);
@@ -201,6 +204,12 @@ export default function CreatePage() {
   const [selectedExercises, setSelectedExercises] = useState<any[]>([]);
   const [exerciseLibraryCategory, setExerciseLibraryCategory] = useState("all");
   const [exerciseSearchQuery, setExerciseSearchQuery] = useState("");
+
+  // AI Generator state
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [aiDescription, setAiDescription] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiGeneratedPlan, setAiGeneratedPlan] = useState<any>(null);
 
   useEffect(() => {
     const isDark = localStorage.getItem("darkMode") === "true";
@@ -295,6 +304,31 @@ export default function CreatePage() {
     setSelectedExercises(updated);
   }
 
+  // AI Generator functions
+  async function handleGenerateAIWorkout() {
+    if (!aiDescription.trim()) {
+      alert("Please describe your workout goals");
+      return;
+    }
+
+    try {
+      setAiLoading(true);
+      const response = await generateAIWorkoutPlan(userId, aiDescription);
+      setAiGeneratedPlan(response);
+    } catch (error) {
+      console.error("Failed to generate AI workout:", error);
+      alert("Failed to generate workout. Please try again.");
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  function closeAIModal() {
+    setShowAIModal(false);
+    setAiDescription("");
+    setAiGeneratedPlan(null);
+  }
+
   async function handleSaveCustomWorkout() {
     if (!customWorkoutName || selectedExercises.length === 0) {
       alert("Please enter a workout name and add at least one exercise");
@@ -351,6 +385,40 @@ export default function CreatePage() {
             Create Workout
           </h1>
         </div>
+
+        {/* AI Generator Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-8"
+        >
+          <button
+            onClick={() => setShowAIModal(true)}
+            className={`w-full border rounded-xl p-6 transition-all duration-300 hover:shadow-lg ${
+              darkMode
+                ? "bg-gradient-to-br from-purple-900/40 to-blue-900/40 border-purple-700 hover:border-purple-600"
+                : "bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200 hover:border-purple-400"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className={`p-3 rounded-xl ${darkMode ? "bg-purple-900/50" : "bg-purple-100"}`}>
+                  <Brain className="w-8 h-8 text-purple-600" />
+                </div>
+                <div className="text-left">
+                  <h3 className={`text-xl font-bold mb-1 ${darkMode ? "text-white" : "text-gray-900"}`}>
+                    Generate with AI
+                  </h3>
+                  <p className={`text-sm ${darkMode ? "text-purple-300" : "text-purple-700"}`}>
+                    Describe your goals and let AI create a personalized 4-week workout plan
+                  </p>
+                </div>
+              </div>
+              <Sparkles className="w-6 h-6 text-purple-600 flex-shrink-0" />
+            </div>
+          </button>
+        </motion.div>
 
         {/* Workout Templates Section */}
         <div className="mb-12">
@@ -846,6 +914,197 @@ export default function CreatePage() {
                   Activate Template
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* AI Generator Modal */}
+      <AnimatePresence>
+        {showAIModal && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) closeAIModal();
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className={`rounded-xl p-6 max-w-2xl w-full shadow-lg ${
+                darkMode ? "bg-gray-800" : "bg-white"
+              }`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Brain className="w-7 h-7 text-purple-600" />
+                  <h2
+                    className={`text-2xl font-bold ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    AI Workout Generator
+                  </h2>
+                </div>
+                <button
+                  onClick={closeAIModal}
+                  className={`p-2 rounded-lg transition-all ${
+                    darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+                  }`}
+                >
+                  <X
+                    className={`w-5 h-5 ${
+                      darkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {!aiGeneratedPlan ? (
+                <>
+                  <p
+                    className={`text-sm mb-4 ${
+                      darkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    Describe your workout goals, experience level, available equipment, and preferred training frequency.
+                    The AI will create a personalized 4-week workout plan for you.
+                  </p>
+
+                  <div className={`border rounded-lg p-4 mb-4 ${
+                    darkMode ? "bg-purple-900/20 border-purple-700/50" : "bg-purple-50 border-purple-200"
+                  }`}>
+                    <p className={`text-sm font-semibold mb-2 ${darkMode ? "text-purple-300" : "text-purple-700"}`}>
+                      Example:
+                    </p>
+                    <p className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                      "I want to build muscle, workout 4 days per week, I have dumbbells and a bench, intermediate level"
+                    </p>
+                  </div>
+
+                  <textarea
+                    value={aiDescription}
+                    onChange={(e) => setAiDescription(e.target.value)}
+                    placeholder="Describe your workout goals..."
+                    disabled={aiLoading}
+                    className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all min-h-32 ${
+                      darkMode
+                        ? "bg-gray-700 border-gray-600 text-white placeholder-gray-500"
+                        : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                    } ${aiLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  />
+
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      onClick={closeAIModal}
+                      className={`flex-1 py-3 rounded-lg font-semibold text-sm transition-all ${
+                        darkMode
+                          ? "bg-gray-700 hover:bg-gray-600 text-white"
+                          : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                      }`}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleGenerateAIWorkout}
+                      disabled={!aiDescription.trim() || aiLoading}
+                      className={`flex-1 py-3 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
+                        !aiDescription.trim() || aiLoading
+                          ? "bg-gray-400 cursor-not-allowed text-white"
+                          : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg"
+                      }`}
+                    >
+                      {aiLoading ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <span>Generating...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-5 h-5" />
+                          <span>Generate Plan</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className={`border rounded-lg p-4 mb-4 ${
+                    darkMode ? "bg-green-900/20 border-green-700/50" : "bg-green-50 border-green-200"
+                  }`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Check className="w-5 h-5 text-green-600" />
+                      <p className={`font-semibold ${darkMode ? "text-green-400" : "text-green-700"}`}>
+                        Workout Plan Generated!
+                      </p>
+                    </div>
+                    <p className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                      {aiGeneratedPlan.message || "Your personalized 4-week workout plan is ready"}
+                    </p>
+                  </div>
+
+                  <div className={`border rounded-lg p-4 mb-4 max-h-96 overflow-y-auto ${
+                    darkMode ? "bg-gray-700/30 border-gray-600" : "bg-gray-50 border-gray-200"
+                  }`}>
+                    <h3 className={`font-semibold mb-3 ${darkMode ? "text-white" : "text-gray-900"}`}>
+                      Plan Preview
+                    </h3>
+                    {aiGeneratedPlan.workouts && aiGeneratedPlan.workouts.length > 0 ? (
+                      <div className="space-y-3">
+                        {aiGeneratedPlan.workouts.slice(0, 3).map((workout: any, idx: number) => (
+                          <div
+                            key={idx}
+                            className={`border rounded-lg p-3 ${
+                              darkMode ? "bg-gray-800/50 border-gray-600" : "bg-white border-gray-200"
+                            }`}
+                          >
+                            <p className={`font-semibold text-sm mb-1 ${darkMode ? "text-white" : "text-gray-900"}`}>
+                              Week {workout.week_number} • {workout.day_of_week}
+                            </p>
+                            <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                              {workout.exercises?.length || 0} exercises • {workout.focus_area}
+                            </p>
+                          </div>
+                        ))}
+                        {aiGeneratedPlan.workouts.length > 3 && (
+                          <p className={`text-sm text-center ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
+                            +{aiGeneratedPlan.workouts.length - 3} more workouts
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                        No workouts available in preview
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={closeAIModal}
+                      className={`flex-1 py-3 rounded-lg font-semibold text-sm transition-all ${
+                        darkMode
+                          ? "bg-gray-700 hover:bg-gray-600 text-white"
+                          : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                      }`}
+                    >
+                      Close
+                    </button>
+                    <button
+                      onClick={() => {
+                        alert("Plan saved to your workouts!");
+                        closeAIModal();
+                      }}
+                      className="flex-1 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg font-semibold text-sm transition-all shadow-lg"
+                    >
+                      Save Plan
+                    </button>
+                  </div>
+                </>
+              )}
             </motion.div>
           </div>
         )}

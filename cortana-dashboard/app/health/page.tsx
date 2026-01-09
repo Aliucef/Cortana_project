@@ -14,14 +14,22 @@ import {
   PlayCircle,
   Zap,
   ArrowRight,
+  Brain,
+  RefreshCw,
+  TrendingUp,
+  AlertCircle,
+  CheckCircle,
+  Info,
 } from "lucide-react";
-import { getWorkoutStats } from "@/lib/health-api";
+import { getWorkoutStats, getAIProgressInsights, type AIProgressAnalysis } from "@/lib/health-api";
 import Link from "next/link";
 
 export default function HealthDashboard() {
   const [darkMode, setDarkMode] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [insights, setInsights] = useState<AIProgressAnalysis | null>(null);
+  const [insightsLoading, setInsightsLoading] = useState(false);
   const userId = 1; // Replace with actual user ID from auth
 
   // Workout Timer state
@@ -48,8 +56,9 @@ export default function HealthDashboard() {
 
     window.addEventListener("darkModeChange", handleDarkModeChange);
 
-    // Load stats
+    // Load stats and insights
     loadStats();
+    loadInsights();
 
     return () => {
       window.removeEventListener("darkModeChange", handleDarkModeChange);
@@ -68,6 +77,18 @@ export default function HealthDashboard() {
       console.error("Failed to load workout stats:", error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadInsights() {
+    try {
+      setInsightsLoading(true);
+      const response = await getAIProgressInsights(userId, 30);
+      setInsights(response);
+    } catch (error) {
+      console.error("Failed to load AI insights:", error);
+    } finally {
+      setInsightsLoading(false);
     }
   }
 
@@ -461,6 +482,204 @@ export default function HealthDashboard() {
             )}
           </motion.div>
         </div>
+
+        {/* AI Progress Insights Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mb-8"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Progress Score Card */}
+            <motion.div
+              whileHover={{ scale: 1.02, y: -2 }}
+              className={`border rounded-xl p-6 transition-all duration-300 cursor-pointer ${
+                darkMode
+                  ? "bg-gray-800 border-gray-700 hover:border-indigo-600/50 hover:shadow-lg hover:shadow-indigo-500/10"
+                  : "bg-white border-gray-200 hover:border-indigo-500 hover:shadow-lg hover:shadow-indigo-500/10"
+              }`}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div
+                  className={`p-2.5 rounded-lg ${
+                    darkMode ? "bg-indigo-900/30" : "bg-indigo-50"
+                  }`}
+                >
+                  <Brain className="w-5 h-5 text-indigo-600" />
+                </div>
+                <button
+                  onClick={loadInsights}
+                  disabled={insightsLoading}
+                  className={`p-1.5 rounded-lg transition-all ${
+                    darkMode
+                      ? "hover:bg-gray-700 text-gray-400"
+                      : "hover:bg-gray-100 text-gray-500"
+                  } ${insightsLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  <RefreshCw
+                    className={`w-4 h-4 ${
+                      insightsLoading ? "animate-spin" : ""
+                    }`}
+                  />
+                </button>
+              </div>
+              <h3
+                className={`text-sm mb-1 ${
+                  darkMode ? "text-gray-400" : "text-gray-500"
+                }`}
+              >
+                AI Progress Score
+              </h3>
+              {insightsLoading && !insights ? (
+                <div className="flex items-center gap-2 mt-3">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
+                  <p
+                    className={`text-sm ${
+                      darkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    Analyzing...
+                  </p>
+                </div>
+              ) : insights ? (
+                <>
+                  <p
+                    className={`text-3xl font-semibold ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    {insights.progress_score}
+                    <span
+                      className={`text-lg ${
+                        darkMode ? "text-gray-500" : "text-gray-400"
+                      }`}
+                    >
+                      /100
+                    </span>
+                  </p>
+                  <div className="mt-3">
+                    <div
+                      className={`w-full rounded-full h-1.5 overflow-hidden ${
+                        darkMode ? "bg-gray-700" : "bg-gray-100"
+                      }`}
+                    >
+                      <div
+                        className={`h-1.5 rounded-full transition-all ${
+                          insights.progress_score >= 75
+                            ? "bg-green-500"
+                            : insights.progress_score >= 50
+                            ? "bg-yellow-500"
+                            : "bg-orange-500"
+                        }`}
+                        style={{ width: `${insights.progress_score}%` }}
+                      />
+                    </div>
+                    <p
+                      className={`text-xs mt-1.5 ${
+                        darkMode ? "text-gray-500" : "text-gray-400"
+                      }`}
+                    >
+                      {insights.data_points.workouts} workouts • {insights.data_points.prs} PRs
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <p
+                  className={`text-sm mt-2 ${
+                    darkMode ? "text-gray-500" : "text-gray-400"
+                  }`}
+                >
+                  No data yet
+                </p>
+              )}
+            </motion.div>
+
+            {/* Key Insights Card */}
+            <motion.div
+              whileHover={{ scale: 1.02, y: -2 }}
+              className={`border rounded-xl p-6 transition-all duration-300 lg:col-span-2 ${
+                darkMode
+                  ? "bg-gray-800 border-gray-700 hover:border-purple-600/50 hover:shadow-lg hover:shadow-purple-500/10"
+                  : "bg-white border-gray-200 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/10"
+              }`}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div
+                  className={`p-2.5 rounded-lg ${
+                    darkMode ? "bg-purple-900/30" : "bg-purple-50"
+                  }`}
+                >
+                  <TrendingUp className="w-5 h-5 text-purple-600" />
+                </div>
+                <span
+                  className={`text-xs font-medium ${
+                    darkMode ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
+                  AI INSIGHTS
+                </span>
+              </div>
+              <h3
+                className={`text-sm mb-3 ${
+                  darkMode ? "text-gray-400" : "text-gray-500"
+                }`}
+              >
+                Key Insights & Recommendations
+              </h3>
+              {insightsLoading && !insights ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                  <p
+                    className={`text-sm ${
+                      darkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    Loading insights...
+                  </p>
+                </div>
+              ) : insights ? (
+                <div className="space-y-2">
+                  {insights.insights.slice(0, 2).map((insight, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex items-start gap-2 text-sm ${
+                        darkMode ? "text-gray-300" : "text-gray-700"
+                      }`}
+                    >
+                      {insight.type === "positive" ? (
+                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                      ) : insight.type === "warning" ? (
+                        <AlertCircle className="w-4 h-4 text-yellow-500 flex-shrink-0 mt-0.5" />
+                      ) : (
+                        <Info className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                      )}
+                      <span>{insight.message}</span>
+                    </div>
+                  ))}
+                  {insights.recommendations.length > 0 && (
+                    <div
+                      className={`flex items-start gap-2 text-sm ${
+                        darkMode ? "text-purple-300" : "text-purple-700"
+                      }`}
+                    >
+                      <span className="text-purple-500 mt-0.5">→</span>
+                      <span>{insights.recommendations[0]}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p
+                  className={`text-sm ${
+                    darkMode ? "text-gray-500" : "text-gray-400"
+                  }`}
+                >
+                  Click refresh to get AI-powered insights
+                </p>
+              )}
+            </motion.div>
+          </div>
+        </motion.div>
 
         {/* Workout Timer Quick Access */}
         <motion.div

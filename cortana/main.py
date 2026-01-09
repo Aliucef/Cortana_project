@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+# Force reload after workout.py changes
 from fastapi.middleware.cors import CORSMiddleware
 from config.database import engine, Base
 from config.settings import get_settings
@@ -103,6 +104,6 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8001,
+        port=8888,
         reload=settings.debug
     )

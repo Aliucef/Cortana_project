@@ -80,6 +80,8 @@ class AIWorkoutGenerator:
         try:
             result = self.ai.generate_json(user_prompt, system_prompt)
             logger.info(f"AI generated workout plan successfully")
+            logger.info(f"AI Response - Number of workouts: {len(result.get('workouts', []))}")
+            logger.info(f"AI Response - Workout days: {[w.get('day') for w in result.get('workouts', [])]}")
 
             # Convert AI response to WorkoutPlan objects
             workout_plans = self._convert_to_workout_plans(user_id, result, weeks)
@@ -173,6 +175,19 @@ Current Profile:
             for cat, exs in exercises_by_category.items()
         ])
 
+        # Extract training frequency from description
+        import re
+        import logging
+        logger = logging.getLogger(__name__)
+
+        frequency_match = re.search(r'(\d+)\s*days?\s*(per\s*week|\/\s*week)?', description.lower())
+        requested_days = int(frequency_match.group(1)) if frequency_match else 3
+
+        logger.info(f"AI WORKOUT GENERATOR DEBUG:")
+        logger.info(f"  Description: {description}")
+        logger.info(f"  Regex match: {frequency_match.group(0) if frequency_match else 'NO MATCH'}")
+        logger.info(f"  Extracted days: {requested_days}")
+
         prompt = f"""Create a {weeks}-week workout program based on this request:
 
 USER REQUEST:
@@ -186,11 +201,14 @@ AVAILABLE EXERCISES (you MUST use these exact names):
 REQUIREMENTS:
 1. Create a program that matches the user's goals and constraints
 2. Use ONLY exercises from the available list above (exact names)
-3. Structure workouts based on training frequency requested
-4. Include proper progression over {weeks} weeks
-5. Consider any injuries or limitations mentioned
-6. Optimize exercise selection for available equipment
-7. Return structured JSON as specified
+3. Generate EXACTLY {requested_days} different workouts (days 1-{requested_days})
+4. Each workout should target different muscle groups for optimal recovery
+5. Include proper progression over {weeks} weeks
+6. Consider any injuries or limitations mentioned
+7. Optimize exercise selection for available equipment
+8. Return structured JSON as specified
+
+IMPORTANT: Your "workouts" array MUST contain {requested_days} workout objects (day 1 through day {requested_days}).
 
 Generate the workout program now:"""
 

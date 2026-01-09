@@ -14,8 +14,10 @@ import {
   ChevronLeft,
   X,
   StickyNote,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
-import { getWorkoutHistory } from "@/lib/health-api";
+import { getWorkoutHistory, logWorkoutWithAI, type LoggedExercise } from "@/lib/health-api";
 
 export default function HistoryPage() {
   const [darkMode, setDarkMode] = useState(false);
@@ -36,6 +38,12 @@ export default function HistoryPage() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportFormat, setExportFormat] = useState("csv"); // csv or pdf
   const [exportDateRange, setExportDateRange] = useState("all"); // all, week, month, custom
+
+  // Quick Log AI state
+  const [quickLogInput, setQuickLogInput] = useState("");
+  const [quickLogLoading, setQuickLogLoading] = useState(false);
+  const [quickLogPreview, setQuickLogPreview] = useState<LoggedExercise[] | null>(null);
+  const [quickLogSuccess, setQuickLogSuccess] = useState(false);
 
   useEffect(() => {
     const isDark = localStorage.getItem("darkMode") === "true";
@@ -277,6 +285,39 @@ export default function HistoryPage() {
     }
   }
 
+  // Quick Log AI functions
+  async function handleQuickLog() {
+    if (!quickLogInput.trim() || quickLogLoading) return;
+
+    try {
+      setQuickLogLoading(true);
+      const response = await logWorkoutWithAI(userId, quickLogInput);
+
+      setQuickLogPreview(response.logged_exercises);
+      setQuickLogSuccess(true);
+
+      // Auto-hide success message and refresh data after 3 seconds
+      setTimeout(() => {
+        setQuickLogSuccess(false);
+        setQuickLogInput("");
+        setQuickLogPreview(null);
+        fetchData(); // Refresh workout history
+      }, 3000);
+    } catch (error) {
+      console.error("Failed to log workout:", error);
+      alert("Failed to log workout. Please try again.");
+    } finally {
+      setQuickLogLoading(false);
+    }
+  }
+
+  function handleQuickLogKeyPress(e: React.KeyboardEvent) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleQuickLog();
+    }
+  }
+
   if (loading) {
     return (
       <div
@@ -332,6 +373,121 @@ export default function HistoryPage() {
             </button>
           </div>
         </div>
+
+        {/* Quick Log AI Input */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className={`rounded-xl p-6 mb-6 border ${
+            darkMode
+              ? "bg-gradient-to-br from-purple-900/20 to-blue-900/20 border-purple-700/50"
+              : "bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200"
+          }`}
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="w-5 h-5 text-purple-600" />
+            <h3
+              className={`text-lg font-semibold ${
+                darkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
+              Quick Log with AI
+            </h3>
+          </div>
+          <p
+            className={`text-sm mb-4 ${
+              darkMode ? "text-gray-400" : "text-gray-600"
+            }`}
+          >
+            Describe your workout in natural language
+            <span className="text-purple-600 font-medium ml-1">
+              (e.g., "I did 3 sets of 10 bench press at 80kg")
+            </span>
+          </p>
+
+          <div className="flex gap-3">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                value={quickLogInput}
+                onChange={(e) => setQuickLogInput(e.target.value)}
+                onKeyPress={handleQuickLogKeyPress}
+                placeholder="What did you do today?"
+                disabled={quickLogLoading}
+                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all ${
+                  darkMode
+                    ? "bg-gray-800 border-gray-700 text-white placeholder-gray-500"
+                    : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                } ${quickLogLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+              />
+              {quickLogSuccess && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <CheckCircle2 className="w-5 h-5 text-green-500" />
+                </div>
+              )}
+            </div>
+            <button
+              onClick={handleQuickLog}
+              disabled={!quickLogInput.trim() || quickLogLoading}
+              className={`px-6 py-3 rounded-lg font-semibold transition-all flex items-center gap-2 ${
+                !quickLogInput.trim() || quickLogLoading
+                  ? "bg-gray-400 cursor-not-allowed text-white"
+                  : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg shadow-purple-200"
+              }`}
+            >
+              {quickLogLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Logging...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  <span>Log</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Preview logged exercises */}
+          {quickLogPreview && quickLogPreview.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`mt-4 p-4 rounded-lg border ${
+                darkMode
+                  ? "bg-gray-800/50 border-gray-700"
+                  : "bg-white/50 border-gray-200"
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                <p
+                  className={`text-sm font-semibold ${
+                    darkMode ? "text-green-400" : "text-green-600"
+                  }`}
+                >
+                  Successfully logged {quickLogPreview.length} exercise
+                  {quickLogPreview.length !== 1 ? "s" : ""}!
+                </p>
+              </div>
+              <div className="space-y-1">
+                {quickLogPreview.map((exercise, idx) => (
+                  <div
+                    key={idx}
+                    className={`text-sm ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    • {exercise.exercise}: {exercise.sets} sets × {exercise.reps}{" "}
+                    reps @ {exercise.weight}kg
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </motion.div>
 
         {/* Filters */}
         <div className={`rounded-lg p-4 mb-6 ${darkMode ? "bg-gray-800" : "bg-white"} shadow-sm`}>
