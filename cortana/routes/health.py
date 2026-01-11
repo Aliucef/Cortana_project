@@ -8,6 +8,7 @@ from datetime import date, datetime
 from pydantic import BaseModel, Field
 
 from config.database import get_db
+from middleware.auth import get_current_user_id
 from services.health_agent import HealthAgent
 from services.workout_program_generator import WorkoutProgramGenerator
 from services.ai_workout_generator import AIWorkoutGenerator
@@ -649,9 +650,16 @@ def log_workout(
 def get_workout_logs(
     user_id: int,
     limit: int = Query(default=20, le=100),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id)
 ):
-    """Get user's workout logs"""
+    """Get user's workout logs (authenticated)"""
+    # Ensure user can only access their own data
+    if user_id != current_user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to access this user's data"
+        )
     logs = db.query(WorkoutLog).filter(
         WorkoutLog.user_id == user_id
     ).order_by(WorkoutLog.logged_at.desc()).limit(limit).all()

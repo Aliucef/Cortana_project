@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   TrendingUp,
   TrendingDown,
@@ -28,8 +29,10 @@ import {
   Legend,
 } from "recharts";
 import { useFinance } from "../components/FinanceContext";
+import { isAuthenticated } from "@/lib/api";
 
 export default function FinanceDashboard() {
+  const router = useRouter();
   const {
     summary,
     records,
@@ -45,6 +48,13 @@ export default function FinanceDashboard() {
   } = useFinance();
 
   const [darkMode, setDarkMode] = useState(false);
+
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push("/login");
+    }
+  }, [router]);
 
   useEffect(() => {
     const isDark = localStorage.getItem("darkMode") === "true";

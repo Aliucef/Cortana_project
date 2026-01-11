@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Dumbbell,
@@ -22,12 +23,21 @@ import {
   Info,
 } from "lucide-react";
 import { getWorkoutStats, getAIProgressInsights, type AIProgressAnalysis } from "@/lib/health-api";
+import { isAuthenticated } from "@/lib/api";
 import Link from "next/link";
 
 export default function HealthDashboard() {
+  const router = useRouter();
   const [darkMode, setDarkMode] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push("/login");
+    }
+  }, [router]);
   const [insights, setInsights] = useState<AIProgressAnalysis | null>(null);
   const [insightsLoading, setInsightsLoading] = useState(false);
   const userId = 1; // Replace with actual user ID from auth

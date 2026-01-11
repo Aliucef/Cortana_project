@@ -9,22 +9,32 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const DEFAULT_USER_ID = 1;
 
 /**
- * Generic API call wrapper with error handling
+ * Generic API call wrapper with error handling and JWT auth
  */
 async function apiCall<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
   try {
+    // Get auth token from localStorage
+    const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
+
     const response = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
       headers: {
         "Content-Type": "application/json",
+        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
         ...options?.headers,
       },
     });
 
     if (!response.ok) {
+      // If unauthorized, clear auth and redirect to login
+      if (response.status === 401 && typeof window !== "undefined") {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("currentUser");
+        window.location.href = "/login";
+      }
       throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
 
@@ -44,6 +54,115 @@ async function apiCall<T>(
     }
     throw error;
   }
+}
+
+// ==================== AUTHENTICATION API ====================
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface SignupRequest {
+  username: string;
+  email: string;
+  password: string;
+  full_name?: string;
+  phone_number?: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user: {
+    id: number;
+    username: string;
+    email: string;
+    full_name?: string;
+  };
+}
+
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  full_name?: string;
+  phone_number?: string;
+  created_at: string;
+}
+
+/**
+ * Login with username and password
+ */
+export async function login(credentials: LoginRequest): Promise<AuthResponse> {
+  return apiCall<AuthResponse>("/auth/login", {
+    method: "POST",
+    body: JSON.stringify(credentials),
+  });
+}
+
+/**
+ * Register a new user
+ */
+export async function signup(userData: SignupRequest): Promise<User> {
+  return apiCall<User>("/users/register", {
+    method: "POST",
+    body: JSON.stringify(userData),
+  });
+}
+
+/**
+ * Get current user from token
+ */
+export function getCurrentUser(): { id: number; username: string; email: string; full_name?: string } | null {
+  if (typeof window === "undefined") return null;
+
+  const token = localStorage.getItem("authToken");
+  const userStr = localStorage.getItem("currentUser");
+
+  if (!token || !userStr) return null;
+
+  try {
+    return JSON.parse(userStr);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Save auth token and user data
+ */
+export function saveAuth(authResponse: AuthResponse): void {
+  if (typeof window === "undefined") return;
+
+  localStorage.setItem("authToken", authResponse.access_token);
+  localStorage.setItem("currentUser", JSON.stringify(authResponse.user));
+}
+
+/**
+ * Clear auth data (logout)
+ */
+export function clearAuth(): void {
+  if (typeof window === "undefined") return;
+
+  localStorage.removeItem("authToken");
+  localStorage.removeItem("currentUser");
+}
+
+/**
+ * Check if user is authenticated
+ */
+export function isAuthenticated(): boolean {
+  if (typeof window === "undefined") return false;
+  return !!localStorage.getItem("authToken");
+}
+
+/**
+ * Get current user ID from stored user data
+ */
+export function getCurrentUserId(): number {
+  const user = getCurrentUser();
+  return user?.id || DEFAULT_USER_ID;
 }
 
 // ==================== FINANCE API ====================
@@ -578,13 +697,12 @@ export interface ChatResponse {
  */
 export async function sendChatMessage(
   message: string,
-  conversationHistory?: Array<{ role: string; content: string }>,
-  userId: number = DEFAULT_USER_ID
+  conversationHistory?: Array<{ role: string; content: string }>
 ): Promise<ChatResponse> {
+  // User ID is automatically extracted from JWT token by backend
   return apiCall("/ai-chat/chat", {
     method: "POST",
     body: JSON.stringify({
-      user_id: userId,
       message: message,
     }),
   });

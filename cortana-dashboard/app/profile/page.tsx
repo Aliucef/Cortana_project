@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   User as UserIcon,
   Mail,
@@ -14,9 +15,10 @@ import {
   Shield,
   Settings as SettingsIcon,
 } from "lucide-react";
-import { getUser, updateUser, type User } from "@/lib/api";
+import { getUser, updateUser, isAuthenticated, type User } from "@/lib/api";
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [darkMode, setDarkMode] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,6 +29,13 @@ export default function ProfilePage() {
     email: "",
     phone: "",
   });
+
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push("/login");
+    }
+  }, [router]);
 
   // Dark mode listener
   useEffect(() => {

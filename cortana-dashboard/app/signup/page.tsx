@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Mail, Lock, Eye, EyeOff, User as UserIcon, Phone } from "lucide-react";
+import { signup as apiSignup, login as apiLogin, saveAuth, isAuthenticated } from "@/lib/api";
 
 export default function SignupPage() {
   const router = useRouter();
   const [darkMode, setDarkMode] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
+    fullName: "",
     email: "",
     phone: "",
     password: "",
@@ -36,6 +38,13 @@ export default function SignupPage() {
       window.removeEventListener("darkModeChange", handleDarkModeChange);
   }, []);
 
+  // Check if already authenticated
+  useEffect(() => {
+    if (isAuthenticated()) {
+      router.push("/");
+    }
+  }, [router]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -60,18 +69,29 @@ export default function SignupPage() {
 
     setLoading(true);
 
-    // TODO: Implement actual user registration
-    // For now, just simulate a signup
-    setTimeout(() => {
-      if (formData.name && formData.email && formData.password) {
-        // Simulate successful signup
-        localStorage.setItem("isAuthenticated", "true");
-        router.push("/");
-      } else {
-        setError("Please fill in all required fields");
-      }
+    try {
+      // Register user
+      await apiSignup({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+        full_name: formData.fullName || undefined,
+        phone_number: formData.phone || undefined,
+      });
+
+      // Auto login after successful signup
+      const loginResponse = await apiLogin({
+        username: formData.username,
+        password: formData.password,
+      });
+
+      saveAuth(loginResponse);
+      router.push("/");
+    } catch (err: any) {
+      setError(err.message || "Registration failed. Please try again.");
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -113,15 +133,15 @@ export default function SignupPage() {
           }`}
         >
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name Field */}
+            {/* Username Field */}
             <div>
               <label
-                htmlFor="name"
+                htmlFor="username"
                 className={`block text-sm font-medium mb-2 ${
                   darkMode ? "text-gray-300" : "text-gray-700"
                 }`}
               >
-                Full Name *
+                Username *
               </label>
               <div className="relative">
                 <UserIcon
@@ -130,10 +150,43 @@ export default function SignupPage() {
                   }`}
                 />
                 <input
-                  id="name"
-                  name="name"
+                  id="username"
+                  name="username"
                   type="text"
-                  value={formData.name}
+                  value={formData.username}
+                  onChange={handleChange}
+                  placeholder="Choose a username"
+                  className={`w-full pl-11 pr-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                    darkMode
+                      ? "bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-blue-900"
+                      : "bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-100"
+                  }`}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Full Name Field */}
+            <div>
+              <label
+                htmlFor="fullName"
+                className={`block text-sm font-medium mb-2 ${
+                  darkMode ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
+                Full Name (Optional)
+              </label>
+              <div className="relative">
+                <UserIcon
+                  className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                    darkMode ? "text-gray-500" : "text-gray-400"
+                  }`}
+                />
+                <input
+                  id="fullName"
+                  name="fullName"
+                  type="text"
+                  value={formData.fullName}
                   onChange={handleChange}
                   placeholder="Enter your full name"
                   className={`w-full pl-11 pr-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
@@ -141,7 +194,6 @@ export default function SignupPage() {
                       ? "bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-blue-900"
                       : "bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-100"
                   }`}
-                  required
                 />
               </div>
             </div>

@@ -1,17 +1,30 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Send, Bot, User, MessageSquare, Loader2 } from "lucide-react";
-import { sendChatMessage, type ChatMessage } from "@/lib/api";
+import { sendChatMessage, isAuthenticated, getCurrentUser, type ChatMessage } from "@/lib/api";
 
 export default function ChatPage() {
+  const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Check authentication and get user ID
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push("/login");
+    } else {
+      const user = getCurrentUser();
+      setCurrentUserId(user?.id || null);
+    }
+  }, [router]);
 
   // Dark mode listener
   useEffect(() => {
@@ -27,9 +40,13 @@ export default function ChatPage() {
     return () => window.removeEventListener("darkModeChange", handleDarkModeChange);
   }, []);
 
-  // Load messages from localStorage on mount
+  // Load messages from localStorage on mount (user-specific)
   useEffect(() => {
-    const savedMessages = localStorage.getItem("cortana-chat-messages");
+    if (!currentUserId) return;
+
+    const storageKey = `cortana-chat-messages-${currentUserId}`;
+    const savedMessages = localStorage.getItem(storageKey);
+
     if (savedMessages) {
       try {
         setMessages(JSON.parse(savedMessages));
@@ -54,14 +71,15 @@ export default function ChatPage() {
         },
       ]);
     }
-  }, []);
+  }, [currentUserId]);
 
-  // Save messages to localStorage whenever they change
+  // Save messages to localStorage whenever they change (user-specific)
   useEffect(() => {
-    if (messages.length > 0) {
-      localStorage.setItem("cortana-chat-messages", JSON.stringify(messages));
+    if (messages.length > 0 && currentUserId) {
+      const storageKey = `cortana-chat-messages-${currentUserId}`;
+      localStorage.setItem(storageKey, JSON.stringify(messages));
     }
-  }, [messages]);
+  }, [messages, currentUserId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

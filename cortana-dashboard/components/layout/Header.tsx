@@ -2,7 +2,8 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Bell, User, Dumbbell, History, Plus, BookOpen, Target, TrendingUp, Bed, BarChart3, LayoutDashboard, Receipt, Repeat, DollarSign } from "lucide-react";
+import { Bell, User, Dumbbell, History, Plus, BookOpen, Target, TrendingUp, Bed, BarChart3, LayoutDashboard, Receipt, Repeat, DollarSign, LogOut } from "lucide-react";
+import { clearAuth, getCurrentUser } from "@/lib/api";
 
 export default function Header() {
   const pathname = usePathname();
@@ -38,6 +39,16 @@ export default function Header() {
   };
 
   const isActivePage = (path: string) => pathname === path;
+
+  const handleLogout = () => {
+    clearAuth();
+    router.push("/login");
+  };
+
+  // Hide header on login/signup pages (AFTER all hooks)
+  if (pathname === "/login" || pathname === "/signup") {
+    return null;
+  }
 
   return (
     <header className={`fixed top-0 left-16 right-0 h-16 border-b z-40 transition-colors duration-200 ${
@@ -283,6 +294,19 @@ export default function Header() {
             title="Profile & Settings"
           >
             <User className="w-5 h-5" />
+          </button>
+
+          {/* Logout */}
+          <button
+            onClick={handleLogout}
+            className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+              darkMode
+                ? "bg-gray-800 hover:bg-red-900 text-gray-400 hover:text-red-400"
+                : "bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600"
+            }`}
+            title="Logout"
+          >
+            <LogOut className="w-5 h-5" />
           </button>
         </div>
       </div>

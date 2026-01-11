@@ -13,6 +13,8 @@ import {
   User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isAuthenticated } from "@/lib/api";
+import { useEffect, useState } from "react";
 
 const navigation = [
   { name: "Overview", href: "/", icon: LayoutDashboard },
@@ -23,6 +25,16 @@ const navigation = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [isAuth, setIsAuth] = useState(false);
+
+  useEffect(() => {
+    setIsAuth(isAuthenticated());
+  }, [pathname]);
+
+  // Hide sidebar on login/signup pages or when not authenticated (AFTER all hooks)
+  if (pathname === "/login" || pathname === "/signup" || !isAuth) {
+    return null;
+  }
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-16 bg-white border-r border-gray-200 z-50 flex flex-col items-center py-6 overflow-hidden">

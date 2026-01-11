@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config.database import engine, Base
 from config.settings import get_settings
-from routes import users, finance, news, workout, finance_agent, ai_chat, budget, health, recurring_expenses, health_dashboard
+from routes import users, finance, news, workout, finance_agent, ai_chat, budget, health, recurring_expenses, health_dashboard, auth
 from routes import scheduler as scheduler_routes
 from services.scheduler_service import SchedulerService
 from services.telegram_service import TelegramService
@@ -70,6 +70,7 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(finance.router)
 app.include_router(news.router)

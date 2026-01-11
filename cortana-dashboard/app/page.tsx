@@ -18,13 +18,40 @@ import {
   Receipt,
   Calendar,
 } from "lucide-react";
-import { getDashboardOverview, type DashboardOverview } from "@/lib/api";
+import {
+  getDashboardOverview,
+  getFinanceRecords,
+  getWorkoutLogs,
+  isAuthenticated,
+  getCurrentUserId,
+  type DashboardOverview,
+  type FinanceRecord,
+  type WorkoutLog,
+} from "@/lib/api";
+
+interface Activity {
+  type: string;
+  description: string;
+  amount?: string;
+  time: string;
+  timestamp: Date;
+  icon: any;
+  color: string;
+}
 
 export default function Home() {
   const router = useRouter();
   const [overview, setOverview] = useState<DashboardOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
+
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push("/login");
+    }
+  }, [router]);
 
   // Dark mode listener
   useEffect(() => {
@@ -43,12 +70,14 @@ export default function Home() {
 
   useEffect(() => {
     loadOverview();
+    loadRecentActivity();
   }, []);
 
   async function loadOverview() {
     setLoading(true);
     try {
-      const data = await getDashboardOverview(1);
+      const userId = getCurrentUserId();
+      const data = await getDashboardOverview(userId);
       setOverview(data);
     } catch (error) {
       console.error("Failed to load overview:", error);
@@ -57,39 +86,73 @@ export default function Home() {
     }
   }
 
-  // Mock recent activity data - you can replace this with real API data later
-  const recentActivities = [
-    {
-      type: "expense",
-      description: "Grocery shopping",
-      amount: "$45.20",
-      time: "2 hours ago",
-      icon: Receipt,
-      color: "red",
-    },
-    {
-      type: "workout",
-      description: "Completed chest & triceps workout",
-      time: "5 hours ago",
-      icon: Dumbbell,
-      color: "purple",
-    },
-    {
-      type: "expense",
-      description: "Coffee at Starbucks",
-      amount: "$5.80",
-      time: "Yesterday",
-      icon: Receipt,
-      color: "red",
-    },
-    {
-      type: "chat",
-      description: "Asked about budget recommendations",
-      time: "Yesterday",
-      icon: MessageCircle,
-      color: "blue",
-    },
-  ];
+  async function loadRecentActivity() {
+    try {
+      const userId = getCurrentUserId();
+      // Fetch recent transactions and workouts
+      const [transactions, workouts] = await Promise.all([
+        getFinanceRecords(userId).catch(() => []),
+        getWorkoutLogs(userId).catch(() => []),
+      ]);
+
+      const activities: Activity[] = [];
+
+      // Transform transactions into activities (last 5)
+      transactions.slice(0, 5).forEach((transaction: FinanceRecord) => {
+        const transactionDate = new Date(transaction.transaction_date);
+        activities.push({
+          type: transaction.transaction_type,
+          description: transaction.description || `${transaction.category} expense`,
+          amount: transaction.transaction_type === "expense" ? `-$${Math.abs(transaction.amount).toFixed(2)}` : `+$${transaction.amount.toFixed(2)}`,
+          time: getRelativeTime(transactionDate),
+          timestamp: transactionDate,
+          icon: Receipt,
+          color: transaction.transaction_type === "expense" ? "red" : "green",
+        });
+      });
+
+      // Transform workouts into activities (last 3)
+      workouts.slice(0, 3).forEach((workout: WorkoutLog) => {
+        const workoutDate = new Date(workout.workout_date);
+        const exerciseCount = workout.exercises_completed?.length || 0;
+        activities.push({
+          type: "workout",
+          description: `Completed workout${exerciseCount > 0 ? ` - ${exerciseCount} exercises` : ""}`,
+          time: getRelativeTime(workoutDate),
+          timestamp: workoutDate,
+          icon: Dumbbell,
+          color: "purple",
+        });
+      });
+
+      // Sort by timestamp (most recent first) and take last 4
+      activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+      setRecentActivities(activities.slice(0, 4));
+    } catch (error) {
+      console.error("Failed to load recent activity:", error);
+      // Keep empty array if fetch fails
+    }
+  }
+
+  function getRelativeTime(date: Date): string {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 60) {
+      return diffMins <= 1 ? "Just now" : `${diffMins} minutes ago`;
+    } else if (diffHours < 24) {
+      return diffHours === 1 ? "1 hour ago" : `${diffHours} hours ago`;
+    } else if (diffDays === 1) {
+      return "Yesterday";
+    } else if (diffDays < 7) {
+      return `${diffDays} days ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  }
 
   return (
     <div className={`min-h-screen pt-24 pb-16 transition-colors duration-200 ${

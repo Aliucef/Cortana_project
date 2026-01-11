@@ -4,12 +4,13 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
+import { User as UserIcon, Lock, Eye, EyeOff, LogIn } from "lucide-react";
+import { login as apiLogin, saveAuth, isAuthenticated } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
   const [darkMode, setDarkMode] = useState(false);
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -30,23 +31,27 @@ export default function LoginPage() {
       window.removeEventListener("darkModeChange", handleDarkModeChange);
   }, []);
 
+  // Check if already authenticated
+  useEffect(() => {
+    if (isAuthenticated()) {
+      router.push("/");
+    }
+  }, [router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    // TODO: Implement actual authentication
-    // For now, just simulate a login
-    setTimeout(() => {
-      if (email && password) {
-        // Simulate successful login
-        localStorage.setItem("isAuthenticated", "true");
-        router.push("/");
-      } else {
-        setError("Please enter both email and password");
-      }
+    try {
+      const response = await apiLogin({ username, password });
+      saveAuth(response);
+      router.push("/");
+    } catch (err: any) {
+      setError(err.message || "Invalid username or password");
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -88,28 +93,28 @@ export default function LoginPage() {
           }`}
         >
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email Field */}
+            {/* Username Field */}
             <div>
               <label
-                htmlFor="email"
+                htmlFor="username"
                 className={`block text-sm font-medium mb-2 ${
                   darkMode ? "text-gray-300" : "text-gray-700"
                 }`}
               >
-                Email
+                Username
               </label>
               <div className="relative">
-                <Mail
+                <UserIcon
                   className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
                     darkMode ? "text-gray-500" : "text-gray-400"
                   }`}
                 />
                 <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter your username"
                   className={`w-full pl-11 pr-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
                     darkMode
                       ? "bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-blue-900"

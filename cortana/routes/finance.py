@@ -8,6 +8,7 @@ from api.schemas import FinanceRecordCreate, FinanceRecordResponse
 from typing import List
 from services.report_export import ReportExporter
 from datetime import datetime
+from middleware.auth import get_current_user_id
 
 router = APIRouter(prefix="/finance", tags=["finance"])
 
@@ -56,8 +57,16 @@ def get_user_finance_records(
     user_id: int,
     skip: int = 0,
     limit: int = 50,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id)
 ):
+    """Get finance records for authenticated user"""
+    # Ensure user can only access their own data
+    if user_id != current_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to access this user's data"
+        )
     """Get all finance records for a user"""
     records = (
         db.query(FinanceRecord)

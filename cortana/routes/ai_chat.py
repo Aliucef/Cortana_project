@@ -4,6 +4,7 @@ AI Chat endpoints - Handle conversational finance tracking
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
 from sqlalchemy.orm import Session
 from config.database import get_db
+from middleware.auth import get_current_user_id
 from services.ai_service import AIService
 from services.notification_service import NotificationService
 from services.budget_monitor import BudgetMonitor
@@ -20,8 +21,7 @@ router = APIRouter(prefix="/ai-chat", tags=["ai-chat"])
 
 
 class ChatMessage(BaseModel):
-    user_id: int
-    message: str
+    message: str  # Removed user_id - will get from JWT
 
 
 @router.post("/parse-expense")
@@ -416,17 +416,22 @@ async def whatsapp_webhook(
 
 
 @router.post("/chat")
-async def chat_with_ai(chat: ChatMessage, db: Session = Depends(get_db)):
+async def chat_with_ai(
+    chat: ChatMessage,
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id)
+):
     """
     General chat endpoint - Uses THE EXACT SAME AI as Telegram
+    Now properly authenticated with JWT - each user gets personalized AI responses
     """
     import asyncio
     from services.telegram_message_handler import process_telegram_message
 
-    # Use the EXACT same function that Telegram uses
+    # Use the authenticated user ID from JWT token (not from request body)
     try:
         response = await process_telegram_message(
-            user_id=chat.user_id,
+            user_id=current_user_id,  # ← From JWT, not request!
             message_text=chat.message,
             db=db,
             context_data={}

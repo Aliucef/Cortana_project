@@ -212,7 +212,7 @@ async def process_telegram_message(user_id: int, message_text: str, db: Session,
                     category = 'other'
 
             # Create the transaction with the clarified category
-            user = db.query(User).filter(User.id == 1).first()
+            user = db.query(User).filter(User.id == user_id).first()
             transaction = FinanceRecord(
                 user_id=user.id,
                 amount=pending['amount'],
@@ -280,9 +280,8 @@ async def process_telegram_message(user_id: int, message_text: str, db: Session,
 
             return f"✅ Receipt logged!\n\n${receipt_data['amount']:.2f} added to {receipt_data['category']}.\n\nNice work keeping track! 📊"
 
-    # Find user in database (for now, using user ID 1 - you can map Telegram ID to DB user)
-    # In production, you'd create a mapping table: telegram_user_id -> cortana_user_id
-    user = db.query(User).filter(User.id == 1).first()
+    # Find user in database using the authenticated user_id
+    user = db.query(User).filter(User.id == user_id).first()
 
     if not user:
         return "Your account is not set up yet. Please register first."

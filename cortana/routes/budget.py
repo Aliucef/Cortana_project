@@ -7,6 +7,7 @@ from config.database import get_db
 from models.budget import Budget, CategoryGoal, BudgetPeriod
 from pydantic import BaseModel
 from typing import List, Optional
+from middleware.auth import get_current_user_id
 
 router = APIRouter(prefix="/budget", tags=["budget"])
 
@@ -106,10 +107,21 @@ def create_budget(budget: BudgetCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/{user_id}", response_model=List[BudgetResponse])
-def get_user_budgets(user_id: int, db: Session = Depends(get_db)):
+def get_user_budgets(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id)
+):
     """
-    Get all budgets for a user
+    Get all budgets for authenticated user
     """
+    # Ensure user can only access their own data
+    if user_id != current_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to access this user's data"
+        )
+
     budgets = db.query(Budget).filter(Budget.user_id == user_id).all()
     return budgets
 
@@ -177,7 +189,20 @@ def create_category_goal(goal: CategoryGoalCreate, db: Session = Depends(get_db)
 
 
 @router.get("/category-goal/{user_id}", response_model=List[CategoryGoalResponse])
-def get_user_category_goals(user_id: int, db: Session = Depends(get_db)):
+def get_user_category_goals(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id)
+):
+    """
+    Get all category goals for authenticated user
+    """
+    # Ensure user can only access their own data
+    if user_id != current_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to access this user's data"
+        )
     """
     Get all category goals for a user
     """
