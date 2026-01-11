@@ -268,13 +268,21 @@ export default function Header() {
             <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
           </button>
 
-          {/* User */}
-          <button className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
-            darkMode
-              ? "bg-gray-800 hover:bg-gray-700"
-              : "bg-gray-100 hover:bg-gray-200"
-          }`}>
-            <User className={`w-5 h-5 ${darkMode ? "text-gray-400" : "text-gray-600"}`} />
+          {/* User Profile */}
+          <button
+            onClick={() => navigateTo("/profile")}
+            className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+              pathname === "/profile"
+                ? darkMode
+                  ? "bg-blue-900 text-blue-400"
+                  : "bg-blue-100 text-blue-600"
+                : darkMode
+                ? "bg-gray-800 hover:bg-gray-700 text-gray-400"
+                : "bg-gray-100 hover:bg-gray-200 text-gray-600"
+            }`}
+            title="Profile & Settings"
+          >
+            <User className="w-5 h-5" />
           </button>
         </div>
       </div>

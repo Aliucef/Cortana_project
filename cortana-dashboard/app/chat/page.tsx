@@ -1,16 +1,31 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Send, Bot, User, Sparkles, Loader2 } from "lucide-react";
+import Image from "next/image";
+import { Send, Bot, User, MessageSquare, Loader2 } from "lucide-react";
 import { sendChatMessage, type ChatMessage } from "@/lib/api";
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Dark mode listener
+  useEffect(() => {
+    const isDark = localStorage.getItem("darkMode") === "true";
+    setDarkMode(isDark);
+
+    const handleDarkModeChange = () => {
+      const isDark = localStorage.getItem("darkMode") === "true";
+      setDarkMode(isDark);
+    };
+
+    window.addEventListener("darkModeChange", handleDarkModeChange);
+    return () => window.removeEventListener("darkModeChange", handleDarkModeChange);
+  }, []);
 
   // Load messages from localStorage on mount
   useEffect(() => {
@@ -104,158 +119,186 @@ export default function ChatPage() {
   };
 
   const quickActions = [
-    { label: "What's my spending this week?", icon: "💰", color: "from-green-50 to-emerald-50 border-green-200/50" },
-    { label: "Show my workout plan", icon: "💪", color: "from-purple-50 to-pink-50 border-purple-200/50" },
-    { label: "Latest news summary", icon: "📰", color: "from-orange-50 to-amber-50 border-orange-200/50" },
-    { label: "How am I doing overall?", icon: "📊", color: "from-blue-50 to-cyan-50 border-blue-200/50" },
+    { label: "What's my spending this week?", icon: "💰" },
+    { label: "Show my workout plan", icon: "💪" },
+    { label: "How am I doing overall?", icon: "📊" },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex flex-col">
+    <div className={`min-h-screen transition-colors duration-200 flex flex-col pt-16 ${
+      darkMode ? "bg-gray-900" : "bg-gray-50"
+    }`}>
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ type: "spring", stiffness: 300 }}
-        className="bg-white/70 backdrop-blur-xl border-b border-gray-200/50 p-6 shadow-sm"
-      >
-        <div className="flex items-center gap-4 max-w-7xl mx-auto">
-          <div className="relative">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-200">
-              <Bot className="w-7 h-7 text-white" />
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
+      <div className={`border-b p-4 sm:p-6 ${
+        darkMode
+          ? "bg-gray-800 border-gray-700"
+          : "bg-white border-gray-200"
+      }`}>
+        <div className="flex items-center gap-3 max-w-4xl mx-auto">
+          <div className="w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center">
+            <Image
+              src="/cortana_face.jpg"
+              alt="Cortana"
+              width={48}
+              height={48}
+              className="w-full h-full object-cover"
+            />
           </div>
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className={`text-2xl sm:text-3xl font-bold ${
+              darkMode ? "text-white" : "text-gray-900"
+            }`}>
               Chat with Cortana
             </h1>
-            <p className="text-gray-600 text-sm font-medium">
+            <p className={`text-sm ${
+              darkMode ? "text-gray-400" : "text-gray-600"
+            }`}>
               Your AI personal assistant
             </p>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 max-w-4xl mx-auto w-full">
-        <AnimatePresence>
-          {messages.map((message, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
-              className={`flex gap-3 ${
-                message.role === "user" ? "flex-row-reverse" : "flex-row"
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 max-w-4xl mx-auto w-full">
+        {messages.map((message, index) => (
+          <div
+            key={index}
+            className={`flex gap-2 sm:gap-3 ${
+              message.role === "user" ? "flex-row-reverse" : "flex-row"
+            }`}
+          >
+            {/* Avatar */}
+            <div
+              className={`flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex items-center justify-center ${
+                message.role === "user"
+                  ? darkMode
+                    ? "bg-blue-900"
+                    : "bg-blue-100"
+                  : ""
               }`}
             >
-              {/* Avatar */}
+              {message.role === "user" ? (
+                <User className={`w-4 h-4 sm:w-5 sm:h-5 ${
+                  darkMode ? "text-blue-400" : "text-blue-600"
+                }`} />
+              ) : (
+                <Image
+                  src="/cortana_face.jpg"
+                  alt="Cortana"
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-cover"
+                />
+              )}
+            </div>
+
+            {/* Message Bubble */}
+            <div
+              className={`max-w-[75%] sm:max-w-[70%] ${
+                message.role === "user" ? "items-end" : "items-start"
+              } flex flex-col gap-2`}
+            >
               <div
-                className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center shadow-md ${
+                className={`px-4 py-3 rounded-lg border ${
                   message.role === "user"
-                    ? "bg-gradient-to-br from-blue-500 to-blue-600 shadow-blue-200"
-                    : "bg-gradient-to-br from-purple-500 to-blue-600 shadow-purple-200"
+                    ? darkMode
+                      ? "bg-blue-900 text-blue-100 border-blue-800"
+                      : "bg-blue-100 text-blue-900 border-blue-200"
+                    : darkMode
+                    ? "bg-gray-800 text-gray-100 border-gray-700"
+                    : "bg-white text-gray-900 border-gray-200"
                 }`}
               >
-                {message.role === "user" ? (
-                  <User className="w-5 h-5 text-white" />
-                ) : (
-                  <Bot className="w-5 h-5 text-white" />
-                )}
-              </div>
+                <p className="text-sm sm:text-base whitespace-pre-wrap leading-relaxed">{message.content}</p>
 
-              {/* Message Bubble */}
-              <div
-                className={`max-w-[70%] ${
-                  message.role === "user" ? "items-end" : "items-start"
-                } flex flex-col gap-2`}
-              >
-                <div
-                  className={`px-5 py-3.5 rounded-2xl backdrop-blur-xl shadow-lg ${
-                    message.role === "user"
-                      ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-tr-md shadow-blue-200/50"
-                      : "bg-white/90 text-gray-900 border border-gray-200/50 rounded-tl-md shadow-gray-100/50"
-                  }`}
-                >
-                  <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
-
-                  {/* Sources (for assistant messages) */}
-                  {message.role === "assistant" && message.sources && message.sources.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-gray-200">
-                      <p className="text-xs font-semibold text-gray-500 mb-1.5">Sources:</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {message.sources.map((source, idx) => (
-                          <span
-                            key={idx}
-                            className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-lg border border-blue-200/50"
-                          >
-                            {source}
-                          </span>
-                        ))}
-                      </div>
+                {/* Sources (for assistant messages) */}
+                {message.role === "assistant" && message.sources && message.sources.length > 0 && (
+                  <div className={`mt-3 pt-3 border-t ${
+                    darkMode ? "border-gray-700" : "border-gray-200"
+                  }`}>
+                    <p className={`text-xs font-semibold mb-1.5 ${
+                      darkMode ? "text-gray-400" : "text-gray-500"
+                    }`}>Sources:</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {message.sources.map((source, idx) => (
+                        <span
+                          key={idx}
+                          className={`text-xs px-2 py-1 rounded border ${
+                            darkMode
+                              ? "bg-blue-900/30 text-blue-400 border-blue-800"
+                              : "bg-blue-50 text-blue-700 border-blue-200"
+                          }`}
+                        >
+                          {source}
+                        </span>
+                      ))}
                     </div>
-                  )}
-                </div>
-
-                {/* Suggestions (clickable follow-ups) */}
-                {message.role === "assistant" && message.suggestions && message.suggestions.length > 0 && (
-                  <div className="flex flex-wrap gap-2 px-2">
-                    {message.suggestions.map((suggestion, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setInput(suggestion)}
-                        className="text-xs bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 text-gray-700 px-3 py-1.5 rounded-full border border-purple-200/50 transition-all hover:shadow-md"
-                      >
-                        {suggestion}
-                      </button>
-                    ))}
                   </div>
                 )}
-
-                <span className="text-xs text-gray-400 px-2 font-medium">
-                  {new Date(message.timestamp).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
               </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+
+              {/* Suggestions (clickable follow-ups) */}
+              {message.role === "assistant" && message.suggestions && message.suggestions.length > 0 && (
+                <div className="flex flex-wrap gap-2 px-2">
+                  {message.suggestions.map((suggestion, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setInput(suggestion)}
+                      className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                        darkMode
+                          ? "bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700"
+                          : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+                      }`}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <span className={`text-xs px-2 ${
+                darkMode ? "text-gray-500" : "text-gray-400"
+              }`}>
+                {new Date(message.timestamp).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+          </div>
+        ))}
 
         {/* Typing Indicator */}
         {isTyping && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 300 }}
-            className="flex gap-3"
-          >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-md shadow-purple-200">
-              <Bot className="w-5 h-5 text-white" />
+          <div className="flex gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0">
+              <Image
+                src="/cortana_face.jpg"
+                alt="Cortana"
+                width={40}
+                height={40}
+                className="w-full h-full object-cover"
+              />
             </div>
-            <div className="bg-white/90 backdrop-blur-xl border border-gray-200/50 px-5 py-3.5 rounded-2xl rounded-tl-md shadow-lg shadow-gray-100/50">
+            <div className={`px-4 py-3 rounded-lg border ${
+              darkMode
+                ? "bg-gray-800 border-gray-700"
+                : "bg-white border-gray-200"
+            }`}>
               <div className="flex gap-1.5">
-                <motion.div
-                  animate={{ scale: [1, 1.3, 1] }}
-                  transition={{ repeat: Infinity, duration: 1, delay: 0 }}
-                  className="w-2 h-2 bg-gray-400 rounded-full"
-                />
-                <motion.div
-                  animate={{ scale: [1, 1.3, 1] }}
-                  transition={{ repeat: Infinity, duration: 1, delay: 0.2 }}
-                  className="w-2 h-2 bg-gray-400 rounded-full"
-                />
-                <motion.div
-                  animate={{ scale: [1, 1.3, 1] }}
-                  transition={{ repeat: Infinity, duration: 1, delay: 0.4 }}
-                  className="w-2 h-2 bg-gray-400 rounded-full"
-                />
+                <div className={`w-2 h-2 rounded-full animate-bounce ${
+                  darkMode ? "bg-gray-500" : "bg-gray-400"
+                }`} style={{ animationDelay: "0ms" }} />
+                <div className={`w-2 h-2 rounded-full animate-bounce ${
+                  darkMode ? "bg-gray-500" : "bg-gray-400"
+                }`} style={{ animationDelay: "150ms" }} />
+                <div className={`w-2 h-2 rounded-full animate-bounce ${
+                  darkMode ? "bg-gray-500" : "bg-gray-400"
+                }`} style={{ animationDelay: "300ms" }} />
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         <div ref={messagesEndRef} />
@@ -263,45 +306,43 @@ export default function ChatPage() {
 
       {/* Quick Actions */}
       {messages.length <= 1 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, type: "spring", stiffness: 300 }}
-          className="px-6 pb-4 max-w-4xl mx-auto w-full"
-        >
-          <p className="text-gray-600 text-sm mb-4 font-semibold">
+        <div className="px-4 sm:px-6 pb-4 max-w-4xl mx-auto w-full">
+          <p className={`text-sm mb-3 font-semibold ${
+            darkMode ? "text-gray-300" : "text-gray-600"
+          }`}>
             Quick actions:
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
             {quickActions.map((action, index) => (
-              <motion.button
+              <button
                 key={index}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{
-                  delay: 0.4 + index * 0.1,
-                  type: "spring",
-                  stiffness: 300,
-                }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
                 onClick={() => setInput(action.label)}
-                className={`flex items-center gap-3 px-5 py-4 bg-gradient-to-br ${action.color} backdrop-blur-xl border rounded-2xl text-left transition-all hover:shadow-lg`}
+                className={`flex items-center gap-3 px-4 py-3 border rounded-lg text-left transition-colors ${
+                  darkMode
+                    ? "bg-gray-800 border-gray-700 hover:bg-gray-700"
+                    : "bg-white border-gray-200 hover:bg-gray-50"
+                }`}
               >
-                <span className="text-3xl">{action.icon}</span>
-                <span className="text-sm text-gray-700 font-semibold">
+                <span className="text-2xl">{action.icon}</span>
+                <span className={`text-sm font-medium ${
+                  darkMode ? "text-gray-200" : "text-gray-700"
+                }`}>
                   {action.label}
                 </span>
-              </motion.button>
+              </button>
             ))}
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* Input Area */}
-      <div className="bg-white/70 backdrop-blur-xl border-t border-gray-200/50 p-6 shadow-lg max-w-4xl mx-auto w-full">
-        <div className="flex gap-3">
-          <div className="flex-1 relative">
+      <div className={`border-t p-4 sm:p-6 max-w-4xl mx-auto w-full ${
+        darkMode
+          ? "bg-gray-800 border-gray-700"
+          : "bg-white border-gray-200"
+      }`}>
+        <div className="flex gap-2 sm:gap-3">
+          <div className="flex-1">
             <input
               ref={inputRef}
               type="text"
@@ -309,28 +350,40 @@ export default function ChatPage() {
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Type your message..."
-              className="w-full px-5 py-4 bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all shadow-sm"
+              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                darkMode
+                  ? "bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-blue-900"
+                  : "bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-100"
+              }`}
               disabled={isTyping}
             />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-purple-400">
-              <Sparkles className="w-5 h-5" />
-            </div>
           </div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={handleSend}
             disabled={!input.trim() || isTyping}
-            className="px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed rounded-2xl font-semibold transition-all flex items-center gap-2 shadow-lg shadow-blue-200 disabled:shadow-none text-white"
+            className={`px-4 sm:px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 border ${
+              !input.trim() || isTyping
+                ? darkMode
+                  ? "bg-gray-700 border-gray-600 text-gray-500 cursor-not-allowed"
+                  : "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
+                : darkMode
+                ? "bg-blue-900 border-blue-800 text-blue-400 hover:bg-blue-800"
+                : "bg-blue-100 border-blue-200 text-blue-700 hover:bg-blue-200"
+            }`}
           >
             {isTyping ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
-              <Send className="w-5 h-5" />
+              <>
+                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Send</span>
+              </>
             )}
-          </motion.button>
+          </button>
         </div>
-        <p className="text-xs text-gray-500 mt-3 text-center font-medium">
+        <p className={`text-xs mt-3 text-center ${
+          darkMode ? "text-gray-500" : "text-gray-500"
+        }`}>
           Cortana can make mistakes. Check important info.
         </p>
       </div>

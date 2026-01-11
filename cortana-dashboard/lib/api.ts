@@ -3,7 +3,7 @@
  * Connects Next.js dashboard to FastAPI backend
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8888";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 // Default user ID (single-user system)
 const DEFAULT_USER_ID = 1;
@@ -35,7 +35,13 @@ async function apiCall<T>(
 
     return await response.json();
   } catch (error) {
-    console.error(`API call failed for ${endpoint}:`, error);
+    // Don't log errors for optional health endpoints that may not exist yet
+    const optionalEndpoints = ['/health/weight/', '/health/workout-logs/'];
+    const isOptional = optionalEndpoints.some(e => endpoint.includes(e));
+
+    if (!isOptional) {
+      console.error(`API call failed for ${endpoint}:`, error);
+    }
     throw error;
   }
 }
@@ -234,6 +240,30 @@ export async function createCategoryGoal(data: {
 }): Promise<CategoryGoal> {
   return apiCall("/budget/category-goal", {
     method: "POST",
+    body: JSON.stringify({
+      user_id: DEFAULT_USER_ID,
+      category: data.category,
+      goal_amount: data.goal_amount,
+      period: data.period,
+      alert_threshold: data.alert_threshold || 0.8,
+    }),
+  });
+}
+
+/**
+ * Update category goal
+ */
+export async function updateCategoryGoal(
+  goalId: number,
+  data: {
+    category: string;
+    goal_amount: number;
+    period: "weekly" | "monthly";
+    alert_threshold?: number;
+  }
+): Promise<CategoryGoal> {
+  return apiCall(`/budget/category-goal/${goalId}`, {
+    method: "PUT",
     body: JSON.stringify({
       user_id: DEFAULT_USER_ID,
       category: data.category,
@@ -671,7 +701,12 @@ export async function getDashboardOverview(
   // This would be a custom endpoint, or we aggregate from multiple calls
   // For now, we'll aggregate client-side
   const [financeSummary, weightLogs, workoutLogs] = await Promise.all([
-    getFinanceSummary(userId),
+    getFinanceSummary(userId).catch(() => ({
+      total_expenses: 0,
+      total_income: 0,
+      net_balance: 0,
+      category_breakdown: {},
+    })),
     getWeightLogs(userId).catch(() => []),
     getWorkoutLogs(userId).catch(() => []),
   ]);
@@ -681,9 +716,9 @@ export async function getDashboardOverview(
 
   return {
     finance: {
-      total_expenses: financeSummary.total_expenses,
-      total_income: financeSummary.total_income,
-      net_balance: financeSummary.net_balance,
+      total_expenses: financeSummary.total_expenses || 0,
+      total_income: financeSummary.total_income || 0,
+      net_balance: financeSummary.net_balance || 0,
     },
     health: {
       current_weight: latestWeight?.weight_kg,
@@ -705,6 +740,18 @@ export async function getDashboardOverview(
   };
 }
 
+// ==================== CONVENIENCE ALIASES ====================
+
+/**
+ * Alias for createBudget (for backwards compatibility)
+ */
+export const setBudget = createBudget;
+
+/**
+ * Alias for createCategoryGoal (for backwards compatibility)
+ */
+export const addCategoryGoal = createCategoryGoal;
+
 export default {
   // Finance
   getFinanceSummary,
@@ -712,7 +759,12 @@ export default {
   addFinanceRecord,
   getBudget,
   createBudget,
+  setBudget,
   getCategoryGoals,
+  createCategoryGoal,
+  addCategoryGoal,
+  updateCategoryGoal,
+  deleteCategoryGoal,
   // Recurring Expenses
   getRecurringExpenses,
   createRecurringExpense,

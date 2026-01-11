@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import {
   LayoutDashboard,
   DollarSign,
@@ -9,7 +10,7 @@ import {
   Target,
   MessageCircle,
   Settings,
-  Newspaper,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +18,6 @@ const navigation = [
   { name: "Overview", href: "/", icon: LayoutDashboard },
   { name: "Finance", href: "/finance", icon: DollarSign },
   { name: "Workouts", href: "/health", icon: Dumbbell },
-  { name: "News", href: "/news", icon: Newspaper },
   { name: "AI Chat", href: "/chat", icon: MessageCircle },
 ];
 
@@ -28,8 +28,14 @@ export default function Sidebar() {
     <aside className="fixed left-0 top-0 h-screen w-16 bg-white border-r border-gray-200 z-50 flex flex-col items-center py-6 overflow-hidden">
       {/* Logo */}
       <Link href="/" className="mb-8">
-        <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition-colors">
-          <span className="text-white font-bold text-sm">C</span>
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center hover:opacity-80 transition-opacity">
+          <Image
+            src="/logo.png"
+            alt="Cortana Logo"
+            width={40}
+            height={40}
+            className="rounded-lg"
+          />
         </div>
       </Link>
 
@@ -66,12 +72,12 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Settings */}
-      <Link href="/settings">
+      {/* Profile */}
+      <Link href="/profile">
         <div className="w-12 h-12 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-all group relative">
-          <Settings className="w-5 h-5" />
+          <User className="w-5 h-5" />
           <div className="absolute left-16 bg-gray-900 text-white text-sm px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap">
-            Settings
+            Profile
           </div>
         </div>
       </Link>

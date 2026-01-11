@@ -1,19 +1,15 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useMemo, useEffect } from "react";
 import {
-  TrendingUp,
-  TrendingDown,
   Edit2,
   Trash2,
   Search,
   X,
   Plus,
-  Upload,
-  Image as ImageIcon,
-  ChevronDown,
-  ChevronUp,
+  ArrowUpRight,
+  ArrowDownRight,
+  Receipt as ReceiptIcon,
 } from "lucide-react";
 import { useFinance } from "../components/FinanceContext";
 import {
@@ -26,17 +22,25 @@ import {
 export default function TransactionsPage() {
   const {
     records,
-    darkMode,
     loadData,
     setSuccessMessage,
     setShowSuccessToast,
-    transactionCurrencies,
-    setTransactionCurrencies,
-    receiptImages,
-    setReceiptImages,
-    convertToUSD,
-    getCurrencySymbol,
   } = useFinance();
+
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    const isDark = localStorage.getItem("darkMode") === "true";
+    setDarkMode(isDark);
+
+    const handleDarkModeChange = () => {
+      const isDark = localStorage.getItem("darkMode") === "true";
+      setDarkMode(isDark);
+    };
+
+    window.addEventListener("darkModeChange", handleDarkModeChange);
+    return () => window.removeEventListener("darkModeChange", handleDarkModeChange);
+  }, []);
 
   // Local state
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,11 +49,6 @@ export default function TransactionsPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [showAllTransactions, setShowAllTransactions] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState("USD");
-  const [currentReceipt, setCurrentReceipt] = useState<string | null>(null);
-  const [showReceiptViewer, setShowReceiptViewer] = useState(false);
-  const [viewingReceiptId, setViewingReceiptId] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
     type: "expense" as "income" | "expense",
@@ -71,111 +70,70 @@ export default function TransactionsPage() {
     );
   }, [records, searchQuery]);
 
+  // Calculate totals
+  const totals = useMemo(() => {
+    const income = filteredRecords
+      .filter((r) => r.transaction_type === "income")
+      .reduce((sum, r) => sum + r.amount, 0);
+    const expenses = filteredRecords
+      .filter((r) => r.transaction_type === "expense")
+      .reduce((sum, r) => sum + r.amount, 0);
+    return { income, expenses, balance: income - expenses };
+  }, [filteredRecords]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (submitting) return;
 
     setSubmitting(true);
     try {
-      const amountInUSD =
-        selectedCurrency === "USD"
-          ? parseFloat(formData.amount)
-          : convertToUSD(parseFloat(formData.amount), selectedCurrency);
+      if (editingRecord) {
+        // Update existing
+        await updateFinanceRecord(editingRecord.id, {
+          type: formData.type,
+          amount: parseFloat(formData.amount),
+          category: formData.category,
+          description: formData.description,
+          date: new Date(formData.date).toISOString(),
+        });
 
-      const newRecord = await addFinanceRecord({
-        type: formData.type,
-        amount: amountInUSD,
-        category: formData.category,
-        description: formData.description,
-        date: new Date(formData.date).toISOString(),
+        setSuccessMessage({
+          title: "Transaction Updated",
+          subtitle: "Your transaction has been updated",
+        });
+      } else {
+        // Add new
+        await addFinanceRecord({
+          type: formData.type,
+          amount: parseFloat(formData.amount),
+          category: formData.category,
+          description: formData.description,
+          date: new Date(formData.date).toISOString(),
+        });
+
+        setSuccessMessage({
+          title: "Transaction Added",
+          subtitle: "Your transaction has been recorded",
+        });
+      }
+
+      setShowSuccessToast(true);
+      setTimeout(() => setShowSuccessToast(false), 3000);
+
+      // Reset form
+      setFormData({
+        type: "expense",
+        amount: "",
+        category: "",
+        description: "",
+        date: new Date().toISOString().split("T")[0],
       });
-
-      // Save currency info if not USD
-      if (selectedCurrency !== "USD" && newRecord.id) {
-        const newCurrencies = {
-          ...transactionCurrencies,
-          [newRecord.id]: {
-            currency: selectedCurrency,
-            originalAmount: parseFloat(formData.amount),
-          },
-        };
-        setTransactionCurrencies(newCurrencies);
-        localStorage.setItem("transactionCurrencies", JSON.stringify(newCurrencies));
-      }
-
-      // Save receipt if one was uploaded
-      if (currentReceipt && newRecord.id) {
-        const newReceipts = { ...receiptImages, [newRecord.id]: currentReceipt };
-        setReceiptImages(newReceipts);
-        localStorage.setItem("receiptImages", JSON.stringify(newReceipts));
-      }
-
-      // Close modal and reset form
       setShowAddModal(false);
-      setFormData({
-        type: "expense",
-        amount: "",
-        category: "",
-        description: "",
-        date: new Date().toISOString().split("T")[0],
-      });
-      setCurrentReceipt(null);
-      setSelectedCurrency("USD");
-
-      // Show success notification
-      setSuccessMessage({
-        title: "Transaction Added!",
-        subtitle: currentReceipt
-          ? "Transaction and receipt saved"
-          : "AI context updated successfully",
-      });
-      setShowSuccessToast(true);
-      setTimeout(() => setShowSuccessToast(false), 3000);
-
-      // Reload data
-      loadData();
-    } catch (error) {
-      console.error("Failed to add transaction:", error);
-      alert("Failed to add transaction. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  async function handleUpdate(e: React.FormEvent) {
-    e.preventDefault();
-    if (!editingRecord || submitting) return;
-
-    setSubmitting(true);
-    try {
-      await updateFinanceRecord(editingRecord.id, {
-        type: formData.type,
-        amount: parseFloat(formData.amount),
-        category: formData.category,
-        description: formData.description,
-        date: new Date(formData.date).toISOString(),
-      });
-
       setEditingRecord(null);
-      setFormData({
-        type: "expense",
-        amount: "",
-        category: "",
-        description: "",
-        date: new Date().toISOString().split("T")[0],
-      });
-
-      setSuccessMessage({
-        title: "Transaction Updated!",
-        subtitle: "Changes saved successfully",
-      });
-      setShowSuccessToast(true);
-      setTimeout(() => setShowSuccessToast(false), 3000);
-
       loadData();
     } catch (error) {
-      console.error("Failed to update transaction:", error);
-      alert("Failed to update transaction. Please try again.");
+      console.error("Failed to save transaction:", error);
+      alert("Failed to save transaction. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -187,23 +145,6 @@ export default function TransactionsPage() {
     setDeleting(true);
     try {
       await deleteFinanceRecord(deleteConfirmId);
-
-      // Remove receipt if exists
-      if (receiptImages[deleteConfirmId]) {
-        const newReceipts = { ...receiptImages };
-        delete newReceipts[deleteConfirmId];
-        setReceiptImages(newReceipts);
-        localStorage.setItem("receiptImages", JSON.stringify(newReceipts));
-      }
-
-      // Remove currency info if exists
-      if (transactionCurrencies[deleteConfirmId]) {
-        const newCurrencies = { ...transactionCurrencies };
-        delete newCurrencies[deleteConfirmId];
-        setTransactionCurrencies(newCurrencies);
-        localStorage.setItem("transactionCurrencies", JSON.stringify(newCurrencies));
-      }
-
       setDeleteConfirmId(null);
 
       setSuccessMessage({
@@ -231,633 +172,449 @@ export default function TransactionsPage() {
       description: record.description || "",
       date: new Date(record.transaction_date).toISOString().split("T")[0],
     });
+    setShowAddModal(true);
   }
 
-  function handleReceiptUpload(e: React.ChangeEvent<HTMLInputElement>, recordId?: number) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64 = reader.result as string;
-      if (recordId) {
-        // Attaching to existing transaction
-        const newReceipts = { ...receiptImages, [recordId]: base64 };
-        setReceiptImages(newReceipts);
-        localStorage.setItem("receiptImages", JSON.stringify(newReceipts));
-      } else {
-        // For new transaction
-        setCurrentReceipt(base64);
-      }
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function viewReceipt(recordId: number) {
-    setViewingReceiptId(recordId);
-    setShowReceiptViewer(true);
-  }
-
-  function deleteReceipt(recordId: number) {
-    const newReceipts = { ...receiptImages };
-    delete newReceipts[recordId];
-    setReceiptImages(newReceipts);
-    localStorage.setItem("receiptImages", JSON.stringify(newReceipts));
-    setShowReceiptViewer(false);
-  }
+  const CATEGORIES = {
+    expense: ["Food", "Transport", "Entertainment", "Shopping", "Bills", "Healthcare", "Other"],
+    income: ["Salary", "Freelance", "Investment", "Gift", "Other"],
+  };
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <h1 className={`text-3xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>
-          Transactions
-        </h1>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all hover:scale-105"
-        >
-          <Plus className="w-5 h-5" />
-          Add Transaction
-        </button>
-      </div>
-
-      {/* Search Bar */}
-      <div className="mb-6">
-        <div className="relative max-w-md">
-          <Search
-            className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
-              darkMode ? "text-gray-500" : "text-gray-400"
-            }`}
-          />
-          <input
-            type="text"
-            placeholder="Search transactions..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={`pl-11 pr-10 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${
+    <div className={`min-h-screen transition-colors duration-200 pt-24 px-6 ${
+      darkMode ? "bg-gray-900" : "bg-gray-50"
+    }`}>
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <ReceiptIcon className="w-8 h-8 text-blue-600" />
+            <h1 className={`text-3xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>
+              Transactions
+            </h1>
+          </div>
+          <button
+            onClick={() => {
+              setEditingRecord(null);
+              setFormData({
+                type: "expense",
+                amount: "",
+                category: "",
+                description: "",
+                date: new Date().toISOString().split("T")[0],
+              });
+              setShowAddModal(true);
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
               darkMode
-                ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400"
-                : "bg-white border-gray-200 text-gray-900"
+                ? "bg-blue-900 text-blue-400 border-blue-800 hover:bg-blue-800"
+                : "bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200"
             }`}
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full transition-colors ${
-                darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
-              }`}
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
+          >
+            <Plus className="w-4 h-4" />
+            Add Transaction
+          </button>
         </div>
-      </div>
 
-      {/* Transactions List */}
-      {filteredRecords.length > 0 ? (
-        <>
-          <div className="space-y-3">
-            {filteredRecords
-              .slice(0, showAllTransactions ? filteredRecords.length : 10)
-              .map((record, index) => (
-                <motion.div
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className={`border rounded-xl p-4 ${
+            darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+          }`}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className={`p-2 rounded-lg ${darkMode ? "bg-green-900/30" : "bg-green-50"}`}>
+                <ArrowUpRight className="w-4 h-4 text-green-600" />
+              </div>
+              <span className={`text-xs font-medium ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                INCOME
+              </span>
+            </div>
+            <p className={`text-2xl font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>
+              ${totals.income.toFixed(2)}
+            </p>
+          </div>
+
+          <div className={`border rounded-xl p-4 ${
+            darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+          }`}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className={`p-2 rounded-lg ${darkMode ? "bg-red-900/30" : "bg-red-50"}`}>
+                <ArrowDownRight className="w-4 h-4 text-red-600" />
+              </div>
+              <span className={`text-xs font-medium ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                EXPENSES
+              </span>
+            </div>
+            <p className={`text-2xl font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>
+              ${totals.expenses.toFixed(2)}
+            </p>
+          </div>
+
+          <div className={`border rounded-xl p-4 ${
+            darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+          }`}>
+            <div className="flex items-center gap-2 mb-2">
+              <span className={`text-xs font-medium ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                NET BALANCE
+              </span>
+            </div>
+            <p className={`text-2xl font-semibold ${
+              totals.balance >= 0 ? "text-green-600" : "text-red-600"
+            }`}>
+              ${totals.balance.toFixed(2)}
+            </p>
+          </div>
+        </div>
+
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative max-w-md">
+            <Search
+              className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                darkMode ? "text-gray-500" : "text-gray-400"
+              }`}
+            />
+            <input
+              type="text"
+              placeholder="Search transactions..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={`pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${
+                darkMode
+                  ? "bg-gray-800 border-gray-700 text-white"
+                  : "bg-white border-gray-300 text-gray-900"
+              }`}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2"
+              >
+                <X className="w-4 h-4 text-gray-400" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Transactions List */}
+        <div className={`border rounded-xl p-6 ${
+          darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+        }`}>
+          <h3 className={`text-lg font-semibold mb-4 ${
+            darkMode ? "text-white" : "text-gray-900"
+          }`}>
+            All Transactions ({filteredRecords.length})
+          </h3>
+
+          {filteredRecords.length === 0 ? (
+            <div className="text-center py-12">
+              <p className={darkMode ? "text-gray-400" : "text-gray-500"}>
+                No transactions found
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredRecords.map((record) => (
+                <div
                   key={record.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  whileHover={{ scale: 1.01, x: 4 }}
-                  className={`flex items-center justify-between p-5 rounded-xl transition-all duration-200 border cursor-pointer ${
+                  className={`flex items-center justify-between p-4 rounded-lg border ${
                     darkMode
-                      ? "bg-gray-800 border-gray-700 hover:border-gray-600 hover:shadow-lg"
-                      : "bg-white border-gray-200 hover:border-gray-300 hover:shadow-lg hover:bg-gray-50/50"
+                      ? "border-gray-700 hover:bg-gray-700/50"
+                      : "border-gray-200 hover:bg-gray-50"
                   }`}
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 flex-1">
                     <div
-                      className={`p-3 rounded-xl ${
+                      className={`p-2 rounded-lg ${
                         record.transaction_type === "income"
                           ? darkMode
                             ? "bg-green-900/30"
-                            : "bg-green-100"
+                            : "bg-green-50"
                           : darkMode
                           ? "bg-red-900/30"
-                          : "bg-red-100"
+                          : "bg-red-50"
                       }`}
                     >
                       {record.transaction_type === "income" ? (
-                        <TrendingUp className="w-5 h-5 text-green-600" />
+                        <ArrowUpRight className="w-4 h-4 text-green-600" />
                       ) : (
-                        <TrendingDown className="w-5 h-5 text-red-600" />
+                        <ArrowDownRight className="w-4 h-4 text-red-600" />
                       )}
                     </div>
-                    <div>
-                      <p
-                        className={`font-semibold ${
-                          darkMode ? "text-white" : "text-gray-900"
-                        }`}
-                      >
-                        {record.category}
+                    <div className="flex-1">
+                      <p className={`font-medium ${darkMode ? "text-white" : "text-gray-900"}`}>
+                        {record.description || record.category}
                       </p>
-                      <p
-                        className={`text-sm ${
-                          darkMode ? "text-gray-400" : "text-gray-500"
-                        }`}
-                      >
-                        {record.description || "No description"}
-                      </p>
-                      <p
-                        className={`text-xs mt-0.5 ${
-                          darkMode ? "text-gray-500" : "text-gray-400"
-                        }`}
-                      >
-                        {new Date(record.created_at).toLocaleString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                          hour: "numeric",
-                          minute: "2-digit",
-                          hour12: true,
-                        })}
+                      <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                        {record.category} • {new Date(record.transaction_date).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      {transactionCurrencies[record.id] ? (
-                        <>
-                          <p
-                            className={`text-xl font-bold ${
-                              record.transaction_type === "income"
-                                ? "text-green-600"
-                                : "text-red-600"
-                            }`}
-                          >
-                            {record.transaction_type === "income" ? "+" : "-"}
-                            {getCurrencySymbol(transactionCurrencies[record.id].currency)}
-                            {transactionCurrencies[record.id].originalAmount.toFixed(2)}
-                          </p>
-                          <p
-                            className={`text-xs ${
-                              darkMode ? "text-gray-400" : "text-gray-500"
-                            }`}
-                          >
-                            ≈ ${record.amount.toFixed(2)} USD
-                          </p>
-                        </>
-                      ) : (
-                        <p
-                          className={`text-xl font-bold ${
-                            record.transaction_type === "income"
-                              ? "text-green-600"
-                              : "text-red-600"
-                          }`}
-                        >
-                          {record.transaction_type === "income" ? "+" : "-"}$
-                          {record.amount.toFixed(2)}
-                        </p>
-                      )}
-                    </div>
-                    {receiptImages[record.id] ? (
+                  <div className="flex items-center gap-4">
+                    <span
+                      className={`font-semibold ${
+                        record.transaction_type === "income"
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {record.transaction_type === "income" ? "+" : "-"}$
+                      {record.amount.toFixed(2)}
+                    </span>
+                    <div className="flex items-center gap-1">
                       <button
-                        onClick={() => viewReceipt(record.id)}
+                        onClick={() => handleEdit(record)}
                         className={`p-2 rounded-lg transition-all ${
                           darkMode
-                            ? "text-gray-500 hover:text-purple-400 hover:bg-purple-900/30"
-                            : "text-gray-400 hover:text-purple-500 hover:bg-purple-50"
+                            ? "hover:bg-gray-600 text-gray-400"
+                            : "hover:bg-gray-100 text-gray-500"
                         }`}
-                        title="View receipt"
+                        title="Edit"
                       >
-                        <ImageIcon className="w-4 h-4" />
+                        <Edit2 className="w-4 h-4" />
                       </button>
-                    ) : (
-                      <label
-                        htmlFor={`receipt-${record.id}`}
-                        className={`p-2 rounded-lg transition-all cursor-pointer ${
+                      <button
+                        onClick={() => setDeleteConfirmId(record.id)}
+                        className={`p-2 rounded-lg transition-all ${
                           darkMode
-                            ? "text-gray-500 hover:text-purple-400 hover:bg-purple-900/30"
-                            : "text-gray-400 hover:text-purple-500 hover:bg-purple-50"
+                            ? "hover:bg-gray-600 text-gray-400"
+                            : "hover:bg-gray-100 text-gray-500"
                         }`}
-                        title="Attach receipt"
+                        title="Delete"
                       >
-                        <Upload className="w-4 h-4" />
-                        <input
-                          type="file"
-                          id={`receipt-${record.id}`}
-                          accept="image/*"
-                          onChange={(e) => handleReceiptUpload(e, record.id)}
-                          className="hidden"
-                        />
-                      </label>
-                    )}
-                    <button
-                      onClick={() => handleEdit(record)}
-                      className={`p-2 rounded-lg transition-all ${
-                        darkMode
-                          ? "text-gray-500 hover:text-blue-400 hover:bg-blue-900/30"
-                          : "text-gray-400 hover:text-blue-500 hover:bg-blue-50"
-                      }`}
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setDeleteConfirmId(record.id)}
-                      className={`p-2 rounded-lg transition-all ${
-                        darkMode
-                          ? "text-gray-500 hover:text-red-500 hover:bg-red-900/30"
-                          : "text-gray-400 hover:text-red-500 hover:bg-red-50"
-                      }`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
-          </div>
-
-          {/* Show More/Less Button */}
-          {filteredRecords.length > 10 && (
-            <div className="mt-6 text-center">
-              <button
-                onClick={() => setShowAllTransactions(!showAllTransactions)}
-                className={`flex items-center gap-2 mx-auto px-6 py-2.5 font-medium text-sm rounded-lg transition-all ${
-                  darkMode
-                    ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                    : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
-                }`}
-              >
-                {showAllTransactions ? (
-                  <>
-                    Show Less <ChevronUp className="w-4 h-4" />
-                  </>
-                ) : (
-                  <>
-                    Show All ({filteredRecords.length}) <ChevronDown className="w-4 h-4" />
-                  </>
-                )}
-              </button>
             </div>
           )}
-        </>
-      ) : (
-        <div
-          className={`flex flex-col items-center justify-center py-16 px-4 rounded-xl border-2 border-dashed ${
-            darkMode ? "border-gray-700 bg-gray-800/50" : "border-gray-300 bg-gray-50"
-          }`}
-        >
+        </div>
+      </div>
+
+      {/* Add/Edit Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div
-            className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-              darkMode ? "bg-gray-700" : "bg-gray-200"
+            className={`rounded-xl max-w-md w-full p-6 ${
+              darkMode ? "bg-gray-800" : "bg-white"
             }`}
           >
-            <Search className={`w-8 h-8 ${darkMode ? "text-gray-500" : "text-gray-400"}`} />
-          </div>
-          <h3 className={`text-lg font-semibold mb-1 ${darkMode ? "text-white" : "text-gray-900"}`}>
-            No transactions found
-          </h3>
-          <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-            {searchQuery ? "Try a different search term" : "Add your first transaction to get started"}
-          </p>
-        </div>
-      )}
-
-      {/* Add/Edit Transaction Modal */}
-      <AnimatePresence>
-        {(showAddModal || editingRecord) && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className={`rounded-xl p-8 max-w-md w-full shadow-lg my-8 max-h-[90vh] overflow-y-auto ${
-                darkMode ? "bg-gray-800" : "bg-white"
-              }`}
-            >
-              <h2 className={`text-2xl font-bold mb-6 ${darkMode ? "text-white" : "text-gray-900"}`}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className={`text-xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>
                 {editingRecord ? "Edit Transaction" : "Add Transaction"}
               </h2>
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  setEditingRecord(null);
+                }}
+                className={`p-2 rounded-lg ${
+                  darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+                }`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-              <form onSubmit={editingRecord ? handleUpdate : handleSubmit} className="space-y-4">
-                {/* Type Toggle */}
-                <div className={`flex gap-2 p-1.5 rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-100"}`}>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Type */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${
+                  darkMode ? "text-gray-300" : "text-gray-700"
+                }`}>
+                  Type
+                </label>
+                <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, type: "expense" })}
-                    className={`flex-1 py-2.5 rounded-xl font-semibold transition-all ${
+                    onClick={() => setFormData({ ...formData, type: "expense", category: "" })}
+                    className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all border ${
                       formData.type === "expense"
                         ? darkMode
-                          ? "bg-gray-800 text-red-500 shadow-md"
-                          : "bg-white text-red-600 shadow-md"
+                          ? "bg-blue-900 text-blue-400 border-blue-800"
+                          : "bg-blue-100 text-blue-700 border-blue-200"
                         : darkMode
-                        ? "text-gray-400"
-                        : "text-gray-600"
+                        ? "bg-gray-700 text-gray-300 border-gray-600 hover:bg-gray-600"
+                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                     }`}
                   >
                     Expense
                   </button>
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, type: "income" })}
-                    className={`flex-1 py-2.5 rounded-xl font-semibold transition-all ${
+                    onClick={() => setFormData({ ...formData, type: "income", category: "" })}
+                    className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all border ${
                       formData.type === "income"
                         ? darkMode
-                          ? "bg-gray-800 text-green-500 shadow-md"
-                          : "bg-white text-green-600 shadow-md"
+                          ? "bg-blue-900 text-blue-400 border-blue-800"
+                          : "bg-blue-100 text-blue-700 border-blue-200"
                         : darkMode
-                        ? "text-gray-400"
-                        : "text-gray-600"
+                        ? "bg-gray-700 text-gray-300 border-gray-600 hover:bg-gray-600"
+                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                     }`}
                   >
                     Income
                   </button>
                 </div>
+              </div>
 
-                {/* Amount */}
-                <div>
-                  <label className={`block text-sm font-semibold mb-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-                    Amount
-                  </label>
-                  <div className="flex gap-3">
-                    <input
-                      type="number"
-                      step="0.01"
-                      required
-                      value={formData.amount}
-                      onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                      className={`flex-1 px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        darkMode
-                          ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                          : "bg-white border-gray-200 text-gray-900"
-                      }`}
-                      placeholder="0.00"
-                    />
-                    {!editingRecord && (
-                      <select
-                        value={selectedCurrency}
-                        onChange={(e) => setSelectedCurrency(e.target.value)}
-                        className={`w-28 px-3 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium ${
-                          darkMode
-                            ? "bg-gray-700 border-gray-600 text-white"
-                            : "bg-white border-gray-200 text-gray-900"
-                        }`}
-                      >
-                        <option value="USD">USD $</option>
-                        <option value="EUR">EUR €</option>
-                        <option value="GBP">GBP £</option>
-                        <option value="LBP">LBP LL</option>
-                        <option value="AED">AED</option>
-                        <option value="SAR">SAR</option>
-                      </select>
-                    )}
-                  </div>
-                  {!editingRecord && selectedCurrency !== "USD" && formData.amount && (
-                    <p className={`text-sm mt-2 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-                      ≈ ${convertToUSD(parseFloat(formData.amount) || 0, selectedCurrency).toFixed(2)} USD
-                    </p>
-                  )}
-                </div>
-
-                {/* Category */}
-                <div>
-                  <label className={`block text-sm font-semibold mb-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-                    Category
-                  </label>
-                  <select
-                    required
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      darkMode
-                        ? "bg-gray-700 border-gray-600 text-white"
-                        : "bg-white border-gray-200 text-gray-900"
-                    }`}
-                  >
-                    <option value="">Select category</option>
-                    {formData.type === "expense" ? (
-                      <>
-                        <option value="Food">Food</option>
-                        <option value="Transportation">Transportation</option>
-                        <option value="Shopping">Shopping</option>
-                        <option value="Utilities">Utilities</option>
-                        <option value="Healthcare">Healthcare</option>
-                        <option value="Entertainment">Entertainment</option>
-                        <option value="Groceries">Groceries</option>
-                        <option value="Other">Other</option>
-                      </>
-                    ) : (
-                      <>
-                        <option value="Salary">Salary</option>
-                        <option value="Freelance">Freelance</option>
-                        <option value="Investment">Investment</option>
-                        <option value="Other">Other</option>
-                      </>
-                    )}
-                  </select>
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className={`block text-sm font-semibold mb-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-                    Description (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      darkMode
-                        ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                        : "bg-white border-gray-200 text-gray-900"
-                    }`}
-                    placeholder="Add a note"
-                  />
-                </div>
-
-                {/* Date */}
-                <div>
-                  <label className={`block text-sm font-semibold mb-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      darkMode
-                        ? "bg-gray-700 border-gray-600 text-white"
-                        : "bg-white border-gray-200 text-gray-900"
-                    }`}
-                  />
-                </div>
-
-                {/* Receipt Upload */}
-                {!editingRecord && (
-                  <div>
-                    <label className={`block text-sm font-semibold mb-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-                      Attach Receipt (Optional)
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleReceiptUpload(e)}
-                        className="hidden"
-                        id="receipt-upload"
-                      />
-                      <label
-                        htmlFor="receipt-upload"
-                        className={`flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed rounded-xl transition-all cursor-pointer ${
-                          darkMode
-                            ? "border-gray-600 hover:border-blue-500 hover:bg-blue-900/30 text-gray-400 hover:text-blue-400"
-                            : "border-gray-300 hover:border-blue-500 hover:bg-blue-50 text-gray-600 hover:text-blue-600"
-                        }`}
-                      >
-                        <Upload className="w-5 h-5" />
-                        <span className="font-medium">
-                          {currentReceipt ? "Change Receipt" : "Upload Receipt"}
-                        </span>
-                      </label>
-                    </div>
-                    {currentReceipt && (
-                      <div className="mt-3 relative">
-                        <img
-                          src={currentReceipt}
-                          alt="Receipt preview"
-                          className={`w-full h-32 object-cover rounded-xl border ${
-                            darkMode ? "border-gray-700" : "border-gray-200"
-                          }`}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setCurrentReceipt(null)}
-                          className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full transition-all shadow-lg"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Buttons */}
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowAddModal(false);
-                      setEditingRecord(null);
-                      setFormData({
-                        type: "expense",
-                        amount: "",
-                        category: "",
-                        description: "",
-                        date: new Date().toISOString().split("T")[0],
-                      });
-                      setCurrentReceipt(null);
-                    }}
-                    className={`flex-1 px-6 py-3 font-semibold rounded-xl transition-all ${
-                      darkMode
-                        ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {submitting ? "Saving..." : editingRecord ? "Update" : "Add"}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Delete Confirmation */}
-      <AnimatePresence>
-        {deleteConfirmId && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className={`rounded-xl p-6 max-w-sm w-full shadow-lg ${
-                darkMode ? "bg-gray-800" : "bg-white"
-              }`}
-            >
-              <h3 className={`text-lg font-bold mb-2 ${darkMode ? "text-white" : "text-gray-900"}`}>
-                Delete Transaction?
-              </h3>
-              <p className={`text-sm mb-6 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-                This action cannot be undone. The transaction will be permanently removed from your
-                records.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setDeleteConfirmId(null)}
-                  className={`flex-1 px-4 py-2 font-semibold rounded-lg ${
+              {/* Amount */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${
+                  darkMode ? "text-gray-300" : "text-gray-700"
+                }`}>
+                  Amount
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     darkMode
-                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      ? "bg-gray-700 border-gray-600 text-white"
+                      : "bg-white border-gray-300 text-gray-900"
+                  }`}
+                  required
+                />
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${
+                  darkMode ? "text-gray-300" : "text-gray-700"
+                }`}>
+                  Category
+                </label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    darkMode
+                      ? "bg-gray-700 border-gray-600 text-white"
+                      : "bg-white border-gray-300 text-gray-900"
+                  }`}
+                  required
+                >
+                  <option value="">Select category</option>
+                  {CATEGORIES[formData.type].map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${
+                  darkMode ? "text-gray-300" : "text-gray-700"
+                }`}>
+                  Description
+                </label>
+                <input
+                  type="text"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    darkMode
+                      ? "bg-gray-700 border-gray-600 text-white"
+                      : "bg-white border-gray-300 text-gray-900"
+                  }`}
+                />
+              </div>
+
+              {/* Date */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${
+                  darkMode ? "text-gray-300" : "text-gray-700"
+                }`}>
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    darkMode
+                      ? "bg-gray-700 border-gray-600 text-white"
+                      : "bg-white border-gray-300 text-gray-900"
+                  }`}
+                  required
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setEditingRecord(null);
+                  }}
+                  className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all border ${
+                    darkMode
+                      ? "bg-gray-700 text-gray-300 border-gray-600 hover:bg-gray-600"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                   }`}
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 disabled:opacity-50"
+                  type="submit"
+                  disabled={submitting}
+                  className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all border ${
+                    darkMode
+                      ? "bg-blue-900 text-blue-400 border-blue-800 hover:bg-blue-800"
+                      : "bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200"
+                  } disabled:opacity-50`}
                 >
-                  {deleting ? "Deleting..." : "Delete"}
+                  {submitting ? "Saving..." : editingRecord ? "Update" : "Add"}
                 </button>
               </div>
-            </motion.div>
+            </form>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
-      {/* Receipt Viewer */}
-      <AnimatePresence>
-        {showReceiptViewer && viewingReceiptId && receiptImages[viewingReceiptId] && (
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId !== null && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div
-            className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowReceiptViewer(false)}
+            className={`rounded-xl max-w-sm w-full p-6 ${
+              darkMode ? "bg-gray-800" : "bg-white"
+            }`}
           >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="max-w-4xl w-full"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="relative">
-                <img
-                  src={receiptImages[viewingReceiptId]}
-                  alt="Receipt"
-                  className="w-full max-h-[80vh] object-contain rounded-xl"
-                />
-                <button
-                  onClick={() => setShowReceiptViewer(false)}
-                  className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-all"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-                <button
-                  onClick={() => deleteReceipt(viewingReceiptId)}
-                  className="absolute bottom-4 right-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all font-semibold"
-                >
-                  Delete Receipt
-                </button>
-              </div>
-            </motion.div>
+            <h2 className={`text-xl font-bold mb-4 ${darkMode ? "text-white" : "text-gray-900"}`}>
+              Delete Transaction?
+            </h2>
+            <p className={`mb-6 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+              This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all border ${
+                  darkMode
+                    ? "bg-gray-700 text-gray-300 border-gray-600 hover:bg-gray-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 py-2 px-4 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 }
