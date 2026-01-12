@@ -35,7 +35,19 @@ async function apiCall<T>(
         localStorage.removeItem("currentUser");
         window.location.href = "/login";
       }
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+
+      // Try to get error message from response body
+      let errorMessage = `API Error: ${response.status} ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        if (errorData.detail) {
+          errorMessage = errorData.detail;
+        }
+      } catch {
+        // If can't parse JSON, use default message
+      }
+
+      throw new Error(errorMessage);
     }
 
     // Handle 204 No Content (e.g., DELETE requests)
@@ -756,22 +768,65 @@ export async function logWorkoutNL(
 
 export interface User {
   id: number;
-  name: string;
-  email?: string;
-  phone?: string;
-  telegram_id?: number;
+  username: string;
+  email: string;
+  full_name?: string;
+  phone_number?: string;
   created_at: string;
 }
 
 /**
- * Get user info
+ * Get current user info (from JWT token)
+ */
+export async function getCurrentUserProfile(): Promise<User> {
+  return apiCall("/users/me");
+}
+
+/**
+ * Update current user profile
+ */
+export async function updateUserProfile(data: {
+  full_name?: string;
+  email?: string;
+  phone_number?: string;
+}): Promise<User> {
+  return apiCall("/users/me", {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Change password
+ */
+export async function changePassword(data: {
+  current_password: string;
+  new_password: string;
+}): Promise<{ message: string }> {
+  return apiCall("/users/me/change-password", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Delete current user account
+ */
+export async function deleteUserAccount(): Promise<void> {
+  return apiCall("/users/me", {
+    method: "DELETE",
+  });
+}
+
+/**
+ * Get user info (legacy - by ID)
  */
 export async function getUser(userId: number = DEFAULT_USER_ID): Promise<User> {
   return apiCall(`/users/${userId}`);
 }
 
 /**
- * Update user info
+ * Update user info (legacy)
  */
 export async function updateUser(data: {
   name?: string;

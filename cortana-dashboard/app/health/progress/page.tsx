@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence } from "framer-motion";
 import {
   TrendingUp,
@@ -31,8 +32,10 @@ import {
   BodyMeasurement,
   WorkoutNote,
 } from "@/lib/health-api";
+import { isAuthenticated } from "@/lib/api";
 
 export default function ProgressPage() {
+  const router = useRouter();
   const [darkMode, setDarkMode] = useState(false);
   const userId = 1; // Hardcoded user ID
 
@@ -48,6 +51,13 @@ export default function ProgressPage() {
   const [prWeight, setPRWeight] = useState("");
   const [prReps, setPRReps] = useState("");
   const [prType, setPRType] = useState("weight");
+
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push("/login");
+    }
+  }, [router]);
 
   // Body Measurements state
   const [bodyMeasurements, setBodyMeasurements] = useState<BodyMeasurement[]>([]);
@@ -239,9 +249,7 @@ export default function ProgressPage() {
 
   return (
     <div
-      className={`min-h-screen transition-colors duration-200 pt-24 px-6 ${
-        darkMode ? "bg-gray-900" : "bg-gray-50"
-      }`}
+      className="min-h-screen"
     >
       <div className="max-w-7xl mx-auto">
         {/* Header */}

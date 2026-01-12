@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Dumbbell,
@@ -25,6 +26,7 @@ import {
   deleteWorkoutPlan,
   deleteAllWorkouts,
 } from "@/lib/health-api";
+import { isAuthenticated } from "@/lib/api";
 
 // Comprehensive Exercise Library
 const EXERCISE_LIBRARY = {
@@ -405,6 +407,7 @@ const EXERCISE_LIBRARY = {
 };
 
 export default function WorkoutsPage() {
+  const router = useRouter();
   const [darkMode, setDarkMode] = useState(false);
   const [currentWeekWorkouts, setCurrentWeekWorkouts] = useState<any>(null);
   const [stats, setStats] = useState<any>(null);
@@ -426,6 +429,13 @@ export default function WorkoutsPage() {
   const [customWorkoutMuscleGroup, setCustomWorkoutMuscleGroup] = useState("");
   const [selectedExercises, setSelectedExercises] = useState<any[]>([]);
   const [exerciseLibraryCategory, setExerciseLibraryCategory] = useState("all");
+
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push("/login");
+    }
+  }, [router]);
 
   // Edit/Delete Workout state
   const [showEditWorkoutModal, setShowEditWorkoutModal] = useState(false);
@@ -693,7 +703,7 @@ export default function WorkoutsPage() {
     setDarkMode(newDarkMode);
     localStorage.setItem("darkMode", String(newDarkMode));
     // Dispatch event to notify header about dark mode change
-    window.dispatchEvent(new Event("darkModeToggle"));
+    window.dispatchEvent(new Event("darkModeChange"));
   }
 
   if (loading) {
@@ -779,11 +789,7 @@ export default function WorkoutsPage() {
   }
 
   return (
-    <div
-      className={`min-h-screen transition-colors duration-200 pt-24 px-4 pb-8 ${
-        darkMode ? "bg-gray-900" : "bg-gray-50"
-      }`}
-    >
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">

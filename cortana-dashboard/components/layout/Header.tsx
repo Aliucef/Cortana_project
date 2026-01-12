@@ -18,18 +18,14 @@ export default function Header() {
     setDarkMode(isDark);
 
     // Listen for dark mode changes
-    const handleStorage = () => {
+    const handleDarkModeChange = () => {
       const isDark = localStorage.getItem("darkMode") === "true";
       setDarkMode(isDark);
     };
 
-    window.addEventListener("storage", handleStorage);
-    // Also listen for custom dark mode event
-    window.addEventListener("darkModeToggle", handleStorage);
-
+    window.addEventListener("darkModeChange", handleDarkModeChange);
     return () => {
-      window.removeEventListener("storage", handleStorage);
-      window.removeEventListener("darkModeToggle", handleStorage);
+      window.removeEventListener("darkModeChange", handleDarkModeChange);
     };
   }, []);
 

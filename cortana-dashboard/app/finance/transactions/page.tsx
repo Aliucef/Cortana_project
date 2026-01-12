@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Edit2,
   Trash2,
@@ -17,15 +18,24 @@ import {
   updateFinanceRecord,
   deleteFinanceRecord,
   type FinanceRecord,
+  isAuthenticated,
 } from "@/lib/api";
 
 export default function TransactionsPage() {
+  const router = useRouter();
   const {
     records,
     loadData,
     setSuccessMessage,
     setShowSuccessToast,
   } = useFinance();
+
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push("/login");
+    }
+  }, [router]);
 
   const [darkMode, setDarkMode] = useState(false);
 
@@ -181,9 +191,7 @@ export default function TransactionsPage() {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 pt-24 px-6 ${
-      darkMode ? "bg-gray-900" : "bg-gray-50"
-    }`}>
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">

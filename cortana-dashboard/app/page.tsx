@@ -155,10 +155,8 @@ export default function Home() {
   }
 
   return (
-    <div className={`min-h-screen pt-24 pb-16 transition-colors duration-200 ${
-      darkMode ? "bg-gray-900" : "bg-gray-50"
-    }`}>
-      <div className="max-w-7xl mx-auto px-4 space-y-6">
+    <div className="min-h-screen">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Welcome Message */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}

@@ -225,9 +225,7 @@ export default function HealthDashboard() {
   if (loading) {
     return (
       <div
-        className={`min-h-screen flex items-center justify-center ${
-          darkMode ? "bg-gray-900" : "bg-gray-50"
-        }`}
+        className="min-h-screen flex items-center justify-center"
       >
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -240,10 +238,7 @@ export default function HealthDashboard() {
   }
 
   return (
-    <div
-      className={`min-h-screen transition-colors duration-200 pt-24 px-6 ${
-        darkMode ? "bg-gray-900" : "bg-gray-50"
-      }`}
+    <div className="min-h-screen"
     >
       <div className="max-w-7xl mx-auto">
         {/* Header */}

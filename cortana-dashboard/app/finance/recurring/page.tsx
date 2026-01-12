@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Repeat,
   Plus,
@@ -16,15 +17,24 @@ import {
   updateRecurringExpense,
   deleteRecurringExpense,
   type RecurringExpense,
+  isAuthenticated,
 } from "@/lib/api";
 
 export default function RecurringExpensesPage() {
+  const router = useRouter();
   const {
     recurringExpenses,
     loadData,
     setSuccessMessage,
     setShowSuccessToast,
   } = useFinance();
+
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push("/login");
+    }
+  }, [router]);
 
   const [darkMode, setDarkMode] = useState(false);
 
@@ -168,9 +178,7 @@ export default function RecurringExpensesPage() {
     .reduce((sum, e) => sum + e.amount, 0) || 0;
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 pt-24 px-6 ${
-      darkMode ? "bg-gray-900" : "bg-gray-50"
-    }`}>
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">

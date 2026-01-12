@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   User as UserIcon,
   Mail,
@@ -14,8 +15,20 @@ import {
   Bell,
   Shield,
   Settings as SettingsIcon,
+  Key,
+  Trash2,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
-import { getUser, updateUser, isAuthenticated, type User } from "@/lib/api";
+import {
+  getCurrentUserProfile,
+  updateUserProfile,
+  changePassword,
+  deleteUserAccount,
+  isAuthenticated,
+  clearAuth,
+  type User,
+} from "@/lib/api";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -25,10 +38,25 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
+    full_name: "",
     email: "",
-    phone: "",
+    phone_number: "",
   });
+
+  // Password change modal state
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    current_password: "",
+    new_password: "",
+    confirm_password: "",
+  });
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+
+  // Delete account modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   // Check authentication
   useEffect(() => {
@@ -59,15 +87,16 @@ export default function ProfilePage() {
 
   const loadUserData = async () => {
     try {
-      const userData = await getUser();
+      const userData = await getCurrentUserProfile();
       setUser(userData);
       setFormData({
-        name: userData.name || "",
+        full_name: userData.full_name || "",
         email: userData.email || "",
-        phone: userData.phone || "",
+        phone_number: userData.phone_number || "",
       });
     } catch (error) {
       console.error("Failed to load user data:", error);
+      alert("Failed to load user data. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -76,12 +105,13 @@ export default function ProfilePage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const updatedUser = await updateUser(formData);
+      const updatedUser = await updateUserProfile(formData);
       setUser(updatedUser);
       setEditing(false);
-    } catch (error) {
+      alert("Profile updated successfully!");
+    } catch (error: any) {
       console.error("Failed to update user:", error);
-      alert("Failed to update profile. Please try again.");
+      alert(error.message || "Failed to update profile. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -89,11 +119,66 @@ export default function ProfilePage() {
 
   const handleCancel = () => {
     setFormData({
-      name: user?.name || "",
+      full_name: user?.full_name || "",
       email: user?.email || "",
-      phone: user?.phone || "",
+      phone_number: user?.phone_number || "",
     });
     setEditing(false);
+  };
+
+  const handlePasswordChange = async () => {
+    setPasswordError("");
+
+    // Validation
+    if (!passwordData.current_password || !passwordData.new_password || !passwordData.confirm_password) {
+      setPasswordError("All fields are required");
+      return;
+    }
+
+    if (passwordData.new_password.length < 6) {
+      setPasswordError("New password must be at least 6 characters");
+      return;
+    }
+
+    if (passwordData.new_password !== passwordData.confirm_password) {
+      setPasswordError("New passwords do not match");
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      await changePassword({
+        current_password: passwordData.current_password,
+        new_password: passwordData.new_password,
+      });
+      setShowPasswordModal(false);
+      setPasswordData({ current_password: "", new_password: "", confirm_password: "" });
+      alert("Password changed successfully!");
+    } catch (error: any) {
+      console.error("Failed to change password:", error);
+      setPasswordError(error.message || "Failed to change password. Please check your current password.");
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== user?.username) {
+      alert("Please type your username correctly to confirm deletion.");
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      await deleteUserAccount();
+      clearAuth();
+      alert("Your account has been deleted.");
+      router.push("/login");
+    } catch (error: any) {
+      console.error("Failed to delete account:", error);
+      alert(error.message || "Failed to delete account. Please try again.");
+      setDeleting(false);
+    }
   };
 
   const toggleDarkMode = () => {
@@ -110,22 +195,19 @@ export default function ProfilePage() {
           darkMode ? "bg-gray-900" : "bg-gray-50"
         }`}
       >
-        <div
-          className={`text-lg ${darkMode ? "text-white" : "text-gray-900"}`}
-        >
-          Loading...
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          <p className={`text-lg ${darkMode ? "text-white" : "text-gray-900"}`}>
+            Loading profile...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div
-      className={`min-h-screen transition-colors duration-200 ${
-        darkMode ? "bg-gray-900" : "bg-gray-50"
-      }`}
-    >
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-4xl">
+    <div className="min-h-screen">
+      <div className="container mx-auto max-w-4xl">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6 sm:mb-8">
           <div
@@ -196,7 +278,7 @@ export default function ProfilePage() {
                         : "bg-blue-100 border-blue-200 text-blue-700 hover:bg-blue-200"
                     }`}
                   >
-                    <Save className="w-4 h-4" />
+                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                     <span className="hidden sm:inline">
                       {saving ? "Saving..." : "Save"}
                     </span>
@@ -206,7 +288,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="space-y-4">
-              {/* Name Field */}
+              {/* Username Field (Read-only) */}
               <div>
                 <label
                   className={`block text-sm font-medium mb-2 ${
@@ -215,15 +297,36 @@ export default function ProfilePage() {
                 >
                   <div className="flex items-center gap-2">
                     <UserIcon className="w-4 h-4" />
-                    Name
+                    Username
+                  </div>
+                </label>
+                <p
+                  className={`px-4 py-2.5 ${
+                    darkMode ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
+                  {user?.username} (cannot be changed)
+                </p>
+              </div>
+
+              {/* Full Name Field */}
+              <div>
+                <label
+                  className={`block text-sm font-medium mb-2 ${
+                    darkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <UserIcon className="w-4 h-4" />
+                    Full Name
                   </div>
                 </label>
                 {editing ? (
                   <input
                     type="text"
-                    value={formData.name}
+                    value={formData.full_name}
                     onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
+                      setFormData({ ...formData, full_name: e.target.value })
                     }
                     className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
                       darkMode
@@ -237,7 +340,7 @@ export default function ProfilePage() {
                       darkMode ? "text-gray-200" : "text-gray-900"
                     }`}
                   >
-                    {user?.name || "Not set"}
+                    {user?.full_name || "Not set"}
                   </p>
                 )}
               </div>
@@ -293,9 +396,9 @@ export default function ProfilePage() {
                 {editing ? (
                   <input
                     type="tel"
-                    value={formData.phone}
+                    value={formData.phone_number}
                     onChange={(e) =>
-                      setFormData({ ...formData, phone: e.target.value })
+                      setFormData({ ...formData, phone_number: e.target.value })
                     }
                     className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
                       darkMode
@@ -309,7 +412,7 @@ export default function ProfilePage() {
                       darkMode ? "text-gray-200" : "text-gray-900"
                     }`}
                   >
-                    {user?.phone || "Not set"}
+                    {user?.phone_number || "Not set"}
                   </p>
                 )}
               </div>
@@ -455,6 +558,106 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Security Settings Card */}
+          <div
+            className={`border rounded-xl p-4 sm:p-6 ${
+              darkMode
+                ? "bg-gray-800 border-gray-700"
+                : "bg-white border-gray-200"
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-6">
+              <Shield className="w-5 h-5 text-green-600" />
+              <h2
+                className={`text-lg font-semibold ${
+                  darkMode ? "text-white" : "text-gray-900"
+                }`}
+              >
+                Security
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              {/* Change Password */}
+              <div
+                className={`flex items-center justify-between p-4 rounded-lg border ${
+                  darkMode
+                    ? "bg-gray-900/50 border-gray-700"
+                    : "bg-gray-50 border-gray-200"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Key className="w-5 h-5 text-green-600" />
+                  <div>
+                    <p
+                      className={`font-medium ${
+                        darkMode ? "text-white" : "text-gray-900"
+                      }`}
+                    >
+                      Change Password
+                    </p>
+                    <p
+                      className={`text-sm ${
+                        darkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      Update your account password
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowPasswordModal(true)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                    darkMode
+                      ? "bg-green-900 border-green-800 text-green-400 hover:bg-green-800"
+                      : "bg-green-100 border-green-200 text-green-700 hover:bg-green-200"
+                  }`}
+                >
+                  Change
+                </button>
+              </div>
+
+              {/* Delete Account */}
+              <div
+                className={`flex items-center justify-between p-4 rounded-lg border ${
+                  darkMode
+                    ? "bg-red-900/20 border-red-800"
+                    : "bg-red-50 border-red-200"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Trash2 className="w-5 h-5 text-red-600" />
+                  <div>
+                    <p
+                      className={`font-medium ${
+                        darkMode ? "text-red-400" : "text-red-900"
+                      }`}
+                    >
+                      Delete Account
+                    </p>
+                    <p
+                      className={`text-sm ${
+                        darkMode ? "text-red-300" : "text-red-600"
+                      }`}
+                    >
+                      Permanently delete your account and all data
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                    darkMode
+                      ? "bg-red-900 border-red-800 text-red-400 hover:bg-red-800"
+                      : "bg-red-100 border-red-200 text-red-700 hover:bg-red-200"
+                  }`}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Account Info Card */}
           <div
             className={`border rounded-xl p-4 sm:p-6 ${
@@ -499,28 +702,302 @@ export default function ProfilePage() {
                     : "N/A"}
                 </span>
               </div>
-              {user?.telegram_id && (
-                <div className="flex justify-between text-sm">
-                  <span
-                    className={`${
-                      darkMode ? "text-gray-400" : "text-gray-600"
-                    }`}
-                  >
-                    Telegram ID
-                  </span>
-                  <span
-                    className={`font-mono ${
-                      darkMode ? "text-gray-200" : "text-gray-900"
-                    }`}
-                  >
-                    {user.telegram_id}
-                  </span>
-                </div>
-              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Password Change Modal */}
+      <AnimatePresence>
+        {showPasswordModal && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => !changingPassword && setShowPasswordModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className={`rounded-xl p-6 max-w-md w-full ${
+                darkMode ? "bg-gray-800" : "bg-white"
+              }`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Key className="w-6 h-6 text-green-600" />
+                  <h2
+                    className={`text-xl font-bold ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    Change Password
+                  </h2>
+                </div>
+                <button
+                  onClick={() => setShowPasswordModal(false)}
+                  disabled={changingPassword}
+                  className={`p-2 rounded-lg transition-all ${
+                    darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+                  }`}
+                >
+                  <X
+                    className={`w-5 h-5 ${
+                      darkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {passwordError && (
+                <div className="mb-4 p-3 rounded-lg bg-red-900/20 border border-red-800 flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-500" />
+                  <p className="text-sm text-red-400">{passwordError}</p>
+                </div>
+              )}
+
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-2 ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    Current Password
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordData.current_password}
+                    onChange={(e) =>
+                      setPasswordData({
+                        ...passwordData,
+                        current_password: e.target.value,
+                      })
+                    }
+                    className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      darkMode
+                        ? "bg-gray-900 border-gray-700 text-white focus:border-green-500 focus:ring-green-900"
+                        : "bg-white border-gray-200 text-gray-900 focus:border-green-500 focus:ring-green-100"
+                    }`}
+                    disabled={changingPassword}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-2 ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordData.new_password}
+                    onChange={(e) =>
+                      setPasswordData({
+                        ...passwordData,
+                        new_password: e.target.value,
+                      })
+                    }
+                    className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      darkMode
+                        ? "bg-gray-900 border-gray-700 text-white focus:border-green-500 focus:ring-green-900"
+                        : "bg-white border-gray-200 text-gray-900 focus:border-green-500 focus:ring-green-100"
+                    }`}
+                    disabled={changingPassword}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-2 ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    Confirm New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordData.confirm_password}
+                    onChange={(e) =>
+                      setPasswordData({
+                        ...passwordData,
+                        confirm_password: e.target.value,
+                      })
+                    }
+                    className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      darkMode
+                        ? "bg-gray-900 border-gray-700 text-white focus:border-green-500 focus:ring-green-900"
+                        : "bg-white border-gray-200 text-gray-900 focus:border-green-500 focus:ring-green-100"
+                    }`}
+                    disabled={changingPassword}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowPasswordModal(false)}
+                  disabled={changingPassword}
+                  className={`flex-1 py-3 rounded-lg font-semibold text-sm transition-colors ${
+                    darkMode
+                      ? "bg-gray-700 hover:bg-gray-600 text-white"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePasswordChange}
+                  disabled={changingPassword}
+                  className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+                >
+                  {changingPassword ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Changing...
+                    </>
+                  ) : (
+                    "Change Password"
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Account Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => !deleting && setShowDeleteModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className={`rounded-xl p-6 max-w-md w-full ${
+                darkMode ? "bg-gray-800" : "bg-white"
+              }`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                  <h2
+                    className={`text-xl font-bold ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    Delete Account
+                  </h2>
+                </div>
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={deleting}
+                  className={`p-2 rounded-lg transition-all ${
+                    darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+                  }`}
+                >
+                  <X
+                    className={`w-5 h-5 ${
+                      darkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="mb-6">
+                <div
+                  className={`p-4 rounded-lg border mb-4 ${
+                    darkMode
+                      ? "bg-red-900/20 border-red-800"
+                      : "bg-red-50 border-red-200"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p
+                        className={`font-semibold mb-2 ${
+                          darkMode ? "text-red-400" : "text-red-900"
+                        }`}
+                      >
+                        Warning: This action cannot be undone!
+                      </p>
+                      <p
+                        className={`text-sm ${
+                          darkMode ? "text-red-300" : "text-red-700"
+                        }`}
+                      >
+                        Deleting your account will permanently remove all your
+                        data including finances, workouts, and chat history.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-2 ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    Type <span className="font-bold">{user?.username}</span> to confirm
+                  </label>
+                  <input
+                    type="text"
+                    value={deleteConfirmText}
+                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                    placeholder={user?.username}
+                    className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      darkMode
+                        ? "bg-gray-900 border-gray-700 text-white focus:border-red-500 focus:ring-red-900"
+                        : "bg-white border-gray-200 text-gray-900 focus:border-red-500 focus:ring-red-100"
+                    }`}
+                    disabled={deleting}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={deleting}
+                  className={`flex-1 py-3 rounded-lg font-semibold text-sm transition-colors ${
+                    darkMode
+                      ? "bg-gray-700 hover:bg-gray-600 text-white"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleting || deleteConfirmText !== user?.username}
+                  className={`flex-1 py-3 rounded-lg font-semibold text-sm transition-colors flex items-center justify-center gap-2 ${
+                    deleting || deleteConfirmText !== user?.username
+                      ? "bg-gray-400 cursor-not-allowed text-white"
+                      : "bg-red-600 hover:bg-red-700 text-white"
+                  }`}
+                >
+                  {deleting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete Account"
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

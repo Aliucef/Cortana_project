@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bed,
@@ -20,8 +21,10 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { getRestDays, scheduleRestDay, deleteRestDay, RestDay } from "@/lib/health-api";
+import { isAuthenticated } from "@/lib/api";
 
 export default function RestPage() {
+  const router = useRouter();
   const [darkMode, setDarkMode] = useState(false);
   const userId = 1;
 
@@ -40,6 +43,13 @@ export default function RestPage() {
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<any>(null);
+
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push("/login");
+    }
+  }, [router]);
 
   useEffect(() => {
     const isDark = localStorage.getItem("darkMode") === "true";
@@ -261,9 +271,7 @@ export default function RestPage() {
 
   return (
     <div
-      className={`min-h-screen transition-colors duration-200 pt-24 px-6 ${
-        darkMode ? "bg-gray-900" : "bg-gray-50"
-      }`}
+      className="min-h-screen"
     >
       <div className="max-w-7xl mx-auto">
         {/* Header */}

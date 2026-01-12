@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -20,6 +21,7 @@ import {
   Brain,
 } from "lucide-react";
 import { getWorkoutTemplates, WorkoutTemplate, generateAIWorkoutPlan } from "@/lib/health-api";
+import { isAuthenticated } from "@/lib/api";
 
 // Workout Templates Data
 const WORKOUT_TEMPLATES = [
@@ -185,6 +187,7 @@ const EXERCISE_LIBRARY = {
 };
 
 export default function CreatePage() {
+  const router = useRouter();
   const [darkMode, setDarkMode] = useState(false);
   const userId = 1;
 
@@ -211,17 +214,24 @@ export default function CreatePage() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiGeneratedPlan, setAiGeneratedPlan] = useState<any>(null);
 
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push("/login");
+    }
+  }, [router]);
+
   useEffect(() => {
     const isDark = localStorage.getItem("darkMode") === "true";
     setDarkMode(isDark);
 
-    const handleDarkModeToggle = () => {
+    const handleDarkModeChange = () => {
       const isDark = localStorage.getItem("darkMode") === "true";
       setDarkMode(isDark);
     };
 
-    window.addEventListener("darkModeToggle", handleDarkModeToggle);
-    return () => window.removeEventListener("darkModeToggle", handleDarkModeToggle);
+    window.addEventListener("darkModeChange", handleDarkModeChange);
+    return () => window.removeEventListener("darkModeChange", handleDarkModeChange);
   }, []);
 
   // Fetch workout templates from API
@@ -368,11 +378,7 @@ export default function CreatePage() {
   });
 
   return (
-    <div
-      className={`min-h-screen transition-colors duration-200 pt-24 px-6 ${
-        darkMode ? "bg-gray-900" : "bg-gray-50"
-      }`}
-    >
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">

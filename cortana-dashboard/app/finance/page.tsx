@@ -2,12 +2,18 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { isAuthenticated } from "@/lib/api";
 
 export default function FinancePage() {
   const router = useRouter();
 
+  // Check authentication before redirecting
   useEffect(() => {
-    router.replace("/finance/dashboard");
+    if (!isAuthenticated()) {
+      router.push("/login");
+    } else {
+      router.replace("/finance/dashboard");
+    }
   }, [router]);
 
   return (

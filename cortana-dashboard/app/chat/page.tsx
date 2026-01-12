@@ -143,9 +143,7 @@ export default function ChatPage() {
   ];
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 flex flex-col pt-16 ${
-      darkMode ? "bg-gray-900" : "bg-gray-50"
-    }`}>
+    <div className="h-full flex flex-col">
       {/* Header */}
       <div className={`border-b p-4 sm:p-6 ${
         darkMode

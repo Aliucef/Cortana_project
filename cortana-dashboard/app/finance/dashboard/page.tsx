@@ -198,9 +198,7 @@ export default function FinanceDashboard() {
   }
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 pt-24 px-6 ${
-      darkMode ? "bg-gray-900" : "bg-gray-50"
-    }`}>
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   History,
@@ -18,8 +19,10 @@ import {
   Loader2,
 } from "lucide-react";
 import { getWorkoutHistory, logWorkoutWithAI, type LoggedExercise } from "@/lib/health-api";
+import { isAuthenticated } from "@/lib/api";
 
 export default function HistoryPage() {
+  const router = useRouter();
   const [darkMode, setDarkMode] = useState(false);
   const userId = 1;
 
@@ -45,17 +48,24 @@ export default function HistoryPage() {
   const [quickLogPreview, setQuickLogPreview] = useState<LoggedExercise[] | null>(null);
   const [quickLogSuccess, setQuickLogSuccess] = useState(false);
 
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push("/login");
+    }
+  }, [router]);
+
   useEffect(() => {
     const isDark = localStorage.getItem("darkMode") === "true";
     setDarkMode(isDark);
 
-    const handleDarkModeToggle = () => {
+    const handleDarkModeChange = () => {
       const isDark = localStorage.getItem("darkMode") === "true";
       setDarkMode(isDark);
     };
 
-    window.addEventListener("darkModeToggle", handleDarkModeToggle);
-    return () => window.removeEventListener("darkModeToggle", handleDarkModeToggle);
+    window.addEventListener("darkModeChange", handleDarkModeChange);
+    return () => window.removeEventListener("darkModeChange", handleDarkModeChange);
   }, []);
 
   useEffect(() => {
@@ -341,9 +351,7 @@ export default function HistoryPage() {
 
   return (
     <div
-      className={`min-h-screen transition-colors duration-200 pt-24 px-6 ${
-        darkMode ? "bg-gray-900" : "bg-gray-50"
-      }`}
+      className="min-h-screen"
     >
       <div className="max-w-7xl mx-auto">
         {/* Header */}

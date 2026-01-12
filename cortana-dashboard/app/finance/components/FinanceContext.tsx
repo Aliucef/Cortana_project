@@ -118,6 +118,19 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Sync with global dark mode changes
+  useEffect(() => {
+    const handleDarkModeChange = () => {
+      const isDark = localStorage.getItem("darkMode") === "true";
+      setDarkMode(isDark);
+    };
+
+    window.addEventListener("darkModeChange", handleDarkModeChange);
+    return () => {
+      window.removeEventListener("darkModeChange", handleDarkModeChange);
+    };
+  }, []);
+
   // Save dark mode to localStorage
   useEffect(() => {
     localStorage.setItem("darkMode", JSON.stringify(darkMode));

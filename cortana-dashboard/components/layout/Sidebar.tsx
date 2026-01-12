@@ -26,10 +26,28 @@ const navigation = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [isAuth, setIsAuth] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     setIsAuth(isAuthenticated());
   }, [pathname]);
+
+  useEffect(() => {
+    // Sync with dark mode from localStorage
+    const isDark = localStorage.getItem("darkMode") === "true";
+    setDarkMode(isDark);
+
+    // Listen for dark mode changes
+    const handleDarkModeChange = () => {
+      const isDark = localStorage.getItem("darkMode") === "true";
+      setDarkMode(isDark);
+    };
+
+    window.addEventListener("darkModeChange", handleDarkModeChange);
+    return () => {
+      window.removeEventListener("darkModeChange", handleDarkModeChange);
+    };
+  }, []);
 
   // Hide sidebar on login/signup pages or when not authenticated (AFTER all hooks)
   if (pathname === "/login" || pathname === "/signup" || !isAuth) {
@@ -37,7 +55,9 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-16 bg-white border-r border-gray-200 z-50 flex flex-col items-center py-6 overflow-hidden">
+    <aside className={`fixed left-0 top-0 h-screen w-16 border-r z-50 flex flex-col items-center py-6 overflow-hidden transition-colors duration-200 ${
+      darkMode ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"
+    }`}>
       {/* Logo */}
       <Link href="/" className="mb-8">
         <div className="w-10 h-10 rounded-lg flex items-center justify-center hover:opacity-80 transition-opacity">
@@ -63,7 +83,11 @@ export default function Sidebar() {
                 className={cn(
                   "relative w-12 h-12 flex items-center justify-center rounded-lg transition-all group",
                   isActive
-                    ? "bg-gray-100 text-gray-900"
+                    ? darkMode
+                      ? "bg-gray-800 text-blue-400"
+                      : "bg-gray-100 text-gray-900"
+                    : darkMode
+                    ? "text-gray-500 hover:text-gray-300 hover:bg-gray-800"
                     : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
                 )}
               >
@@ -75,7 +99,9 @@ export default function Sidebar() {
                 )}
 
                 {/* Tooltip */}
-                <div className="absolute left-16 bg-gray-900 text-white text-sm px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap">
+                <div className={`absolute left-16 text-sm px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap ${
+                  darkMode ? "bg-gray-800 text-white" : "bg-gray-900 text-white"
+                }`}>
                   {item.name}
                 </div>
               </div>
@@ -86,9 +112,19 @@ export default function Sidebar() {
 
       {/* Profile */}
       <Link href="/profile">
-        <div className="w-12 h-12 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-all group relative">
+        <div className={`w-12 h-12 flex items-center justify-center rounded-lg transition-all group relative ${
+          pathname === "/profile"
+            ? darkMode
+              ? "bg-gray-800 text-blue-400"
+              : "bg-gray-100 text-gray-900"
+            : darkMode
+            ? "text-gray-500 hover:text-gray-300 hover:bg-gray-800"
+            : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
+        }`}>
           <User className="w-5 h-5" />
-          <div className="absolute left-16 bg-gray-900 text-white text-sm px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap">
+          <div className={`absolute left-16 text-sm px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap ${
+            darkMode ? "bg-gray-800 text-white" : "bg-gray-900 text-white"
+          }`}>
             Profile
           </div>
         </div>

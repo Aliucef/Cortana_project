@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Dumbbell,
@@ -15,6 +16,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { getExercises, Exercise } from "@/lib/health-api";
+import { isAuthenticated } from "@/lib/api";
 
 // OLD: Comprehensive Exercise Library (REPLACED WITH API)
 const EXERCISE_LIBRARY_OLD = {
@@ -395,6 +397,7 @@ const EXERCISE_LIBRARY_OLD = {
 };
 
 export default function LibraryPage() {
+  const router = useRouter();
   // State
   const [darkMode, setDarkMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -411,14 +414,30 @@ export default function LibraryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push("/login");
+    }
+  }, [router]);
+
   useEffect(() => {
     const isDark = localStorage.getItem("darkMode") === "true";
     setDarkMode(isDark);
+
+    const handleDarkModeChange = () => {
+      const isDark = localStorage.getItem("darkMode") === "true";
+      setDarkMode(isDark);
+    };
+
+    window.addEventListener("darkModeChange", handleDarkModeChange);
 
     const savedFavorites = localStorage.getItem("favoriteExercises");
     if (savedFavorites) {
       setFavorites(JSON.parse(savedFavorites));
     }
+
+    return () => window.removeEventListener("darkModeChange", handleDarkModeChange);
   }, []);
 
   // NEW: Fetch exercises from API
@@ -494,11 +513,7 @@ export default function LibraryPage() {
   }
 
   return (
-    <div
-      className={`min-h-screen transition-colors duration-200 pt-24 px-4 pb-8 ${
-        darkMode ? "bg-gray-900" : "bg-gray-50"
-      }`}
-    >
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Loading State */}
         {loading && (

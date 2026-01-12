@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Target,
   Plus,
@@ -17,9 +18,11 @@ import {
   updateCategoryGoal,
   deleteCategoryGoal,
   type CategoryGoal,
+  isAuthenticated,
 } from "@/lib/api";
 
 export default function BudgetGoalsPage() {
+  const router = useRouter();
   const {
     budget,
     categoryGoals,
@@ -28,6 +31,13 @@ export default function BudgetGoalsPage() {
     setSuccessMessage,
     setShowSuccessToast,
   } = useFinance();
+
+  // Check authentication
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push("/login");
+    }
+  }, [router]);
 
   const [darkMode, setDarkMode] = useState(false);
 
@@ -196,9 +206,7 @@ export default function BudgetGoalsPage() {
   ];
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 pt-24 px-6 ${
-      darkMode ? "bg-gray-900" : "bg-gray-50"
-    }`}>
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">

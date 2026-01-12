@@ -152,7 +152,17 @@
       "Bash(powershell.exe -Command \"Get-Process | Where-Object { @\\(14924,22648,18136,17716,4064,21256,7952\\) -contains $_.Id } | Stop-Process -Force\")",
       "Bash(powershell.exe:*)",
       "Bash(cmd.exe /c \"netstat -ano | findstr :8889\")",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(for file in /mnt/d/Final-Project/cortana-dashboard/app/{chat,health,finance/dashboard,page}.tsx)",
+      "Bash(do if [ -f \"$file\" ])",
+      "Bash(then echo \"=== $file ===\" grep -n \"min-h-screen.*bg-gray\" \"$file\")",
+      "Bash(for page in transactions budget-goals recurring)",
+      "Bash(do file=\"/mnt/d/Final-Project/cortana-dashboard/app/finance/$page/page.tsx\" if [ -f \"$file\" ])",
+      "Bash(then echo \"=== $page ===\" grep -A2 \"^  return \\(\" \"$file\")",
+      "Bash(npm run build:*)",
+      "Bash(do file=\"/mnt/d/Final-Project/cortana-dashboard/app/finance/$page/page.tsx\" echo \"=== $page ===\" grep -A10 \"const \\\\[darkMode\" \"$file\")",
+      "Bash(for file in app/finance/budget-goals/page.tsx app/finance/dashboard/page.tsx app/finance/recurring/page.tsx app/finance/transactions/page.tsx app/health/create/page.tsx app/health/goals/page.tsx app/health/history/page.tsx app/health/progress/page.tsx app/health/rest/page.tsx)",
+      "Bash(do sed -i 's/className=\"\"min-h-screen px-6\"\"/className=\"\"min-h-screen\"\"/g' \"$file\")"
     ],
     "deny": [],
     "ask": []
