@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from config.database import get_db
 from middleware.auth import get_current_user_id
 from services.ai_service import AIService
-from services.notification_service import NotificationService
+# from services.notification_service import NotificationService  # Old Twilio service - not used
 from services.budget_monitor import BudgetMonitor
 from models.user import User
 from models.finance import FinanceRecord, TransactionType

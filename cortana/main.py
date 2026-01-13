@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config.database import engine, Base
 from config.settings import get_settings
-from routes import users, finance, news, workout, finance_agent, ai_chat, budget, health, recurring_expenses, health_dashboard, auth
+from routes import users, finance, news, workout, finance_agent, ai_chat, budget, health, recurring_expenses, health_dashboard, auth, notifications
 from routes import scheduler as scheduler_routes
 from services.scheduler_service import SchedulerService
 from services.telegram_service import TelegramService
@@ -14,6 +14,7 @@ import threading
 from models.budget import Budget, CategoryGoal
 from models.user_preferences import UserSchedulePreference
 from models.telegram_link import TelegramLink
+from models.notification import Notification
 from models.workout import (
     UserGymProfile, WorkoutPlan, WorkoutLog, WeightLog, GymSchedule,
     PersonalRecord, WorkoutNote, RestDay, Exercise, WorkoutTemplate
@@ -82,6 +83,7 @@ app.include_router(health.router, prefix="/health", tags=["health"])
 app.include_router(health_dashboard.router, prefix="/health", tags=["health-dashboard"])
 app.include_router(scheduler_routes.router)
 app.include_router(recurring_expenses.router)
+app.include_router(notifications.router)
 
 
 @app.get("/")

@@ -100,6 +100,8 @@ export interface User {
   email: string;
   full_name?: string;
   phone_number?: string;
+  telegram_user_id?: string | null;
+  last_login?: string | null;
   created_at: string;
 }
 
@@ -780,6 +782,8 @@ export interface User {
   email: string;
   full_name?: string;
   phone_number?: string;
+  telegram_user_id?: string | null;
+  last_login?: string | null;
   created_at: string;
 }
 
@@ -909,6 +913,14 @@ export async function getAdminStats(): Promise<AdminStats> {
   const newUsersThisWeek = users.filter(u => new Date(u.created_at) >= weekAgo).length;
   const newUsersThisMonth = users.filter(u => new Date(u.created_at) >= monthAgo).length;
 
+  // Count users with Telegram linked
+  const telegramLinkedUsers = users.filter(u => u.telegram_user_id).length;
+
+  // Count active users (logged in within last 30 days)
+  const activeUsers = users.filter(u =>
+    u.last_login && new Date(u.last_login) >= monthAgo
+  ).length;
+
   // Sort by created_at descending and take first 5
   const recentSignups = [...users]
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -918,8 +930,8 @@ export async function getAdminStats(): Promise<AdminStats> {
     total_users: users.length,
     new_users_this_week: newUsersThisWeek,
     new_users_this_month: newUsersThisMonth,
-    telegram_linked_users: 0, // We'll need to enhance this with actual data
-    active_users: users.length, // Placeholder
+    telegram_linked_users: telegramLinkedUsers,
+    active_users: activeUsers,
     recent_signups: recentSignups,
   };
 }
@@ -929,6 +941,94 @@ export async function getAdminStats(): Promise<AdminStats> {
  */
 export async function deleteUser(userId: number): Promise<void> {
   return apiCall(`/users/${userId}`, {
+    method: "DELETE",
+  });
+}
+
+/**
+ * Get financial overview across all users (admin only)
+ */
+export interface FinancialOverview {
+  total_income: number;
+  total_expenses: number;
+  net_balance: number;
+  total_transactions: number;
+  top_categories: Array<{
+    category: string;
+    total: number;
+  }>;
+}
+
+export async function getAdminFinancialOverview(): Promise<FinancialOverview> {
+  return apiCall("/finance/admin/overview");
+}
+
+// ==================== NOTIFICATIONS API ====================
+
+export interface Notification {
+  id: number;
+  user_id: number;
+  title: string;
+  message: string;
+  notification_type: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface NotificationsResponse {
+  notifications: Notification[];
+  total: number;
+  unread_count: number;
+}
+
+/**
+ * Get notifications for the authenticated user
+ */
+export async function getNotifications(
+  skip: number = 0,
+  limit: number = 20,
+  unread_only: boolean = false
+): Promise<NotificationsResponse> {
+  const params = new URLSearchParams({
+    skip: skip.toString(),
+    limit: limit.toString(),
+    unread_only: unread_only.toString(),
+  });
+  return apiCall(`/notifications/?${params}`);
+}
+
+/**
+ * Get unread notification count
+ */
+export async function getUnreadNotificationCount(): Promise<number> {
+  const response = await apiCall<{ unread_count: number }>("/notifications/unread-count");
+  return response.unread_count;
+}
+
+/**
+ * Mark specific notifications as read
+ */
+export async function markNotificationsRead(notificationIds: number[]): Promise<void> {
+  return apiCall("/notifications/mark-read", {
+    method: "POST",
+    body: JSON.stringify({ notification_ids: notificationIds }),
+  });
+}
+
+/**
+ * Mark all notifications as read
+ */
+export async function markAllNotificationsRead(): Promise<void> {
+  return apiCall("/notifications/mark-all-read", {
+    method: "POST",
+  });
+}
+
+/**
+ * Delete a notification
+ */
+export async function deleteNotification(notificationId: number): Promise<void> {
+  return apiCall(`/notifications/${notificationId}`, {
     method: "DELETE",
   });
 }

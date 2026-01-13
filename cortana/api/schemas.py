@@ -20,6 +20,8 @@ class UserResponse(BaseModel):
     email: str
     full_name: Optional[str]
     phone_number: Optional[str]
+    telegram_user_id: Optional[str]
+    last_login: Optional[datetime]
     created_at: datetime
 
     class Config:

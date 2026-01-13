@@ -6,7 +6,7 @@ from sqlalchemy import and_, func
 from models.budget import Budget, CategoryGoal, BudgetPeriod
 from models.finance import FinanceRecord, TransactionType
 from models.user import User
-from services.notification_service import NotificationService
+# from services.notification_service import NotificationService  # Old Twilio service - not used
 from datetime import datetime, timedelta
 import logging
 

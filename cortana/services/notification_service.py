@@ -1,66 +1,79 @@
 """
-Notification Service - Handles sending notifications via WhatsApp, SMS, etc.
+Notification Service
+Handles creating and managing notifications for users
 """
-from twilio.rest import Client
-from config.settings import get_settings
-from typing import Optional
-import logging
-
-logger = logging.getLogger(__name__)
-settings = get_settings()
+from sqlalchemy.orm import Session
+from models.notification import Notification
+from datetime import datetime
 
 
-class NotificationService:
-    """Service for sending notifications to users"""
+def create_notification(
+    db: Session,
+    user_id: int,
+    title: str,
+    message: str,
+    notification_type: str = "system"
+) -> Notification:
+    """
+    Create a new notification for a user
 
-    def __init__(self):
-        self.client = Client(
-            settings.twilio_account_sid,
-            settings.twilio_auth_token
-        )
-        self.from_whatsapp = f"whatsapp:{settings.twilio_phone_number}"
-        self.to_whatsapp = f"whatsapp:{settings.user_phone_number}"
+    Args:
+        db: Database session
+        user_id: User ID to send notification to
+        title: Notification title
+        message: Notification message body
+        notification_type: Type of notification (finance, news, health, system)
 
-    def send_whatsapp(self, message: str) -> bool:
-        """
-        Send a WhatsApp message
+    Returns:
+        Created Notification object
+    """
+    notification = Notification(
+        user_id=user_id,
+        title=title,
+        message=message,
+        notification_type=notification_type,
+        is_read=False
+    )
 
-        Args:
-            message: Message text to send
+    db.add(notification)
+    db.commit()
+    db.refresh(notification)
 
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            result = self.client.messages.create(
-                body=message,
-                from_=self.from_whatsapp,
-                to=self.to_whatsapp
-            )
+    return notification
 
-            logger.info(f"WhatsApp message sent successfully. SID: {result.sid}")
-            return True
 
-        except Exception as e:
-            logger.error(f"Failed to send WhatsApp message: {str(e)}")
-            return False
+def create_finance_notification(db: Session, user_id: int, title: str, message: str):
+    """Create a finance-related notification"""
+    return create_notification(db, user_id, title, message, "finance")
 
-    def send_finance_summary(
-        self,
-        summary_message: str,
-        user_name: Optional[str] = None
-    ) -> bool:
-        """
-        Send a formatted finance summary via WhatsApp
 
-        Args:
-            summary_message: Pre-formatted summary message
-            user_name: Optional user name for personalization
+def create_news_notification(db: Session, user_id: int, title: str, message: str):
+    """Create a news-related notification"""
+    return create_notification(db, user_id, title, message, "news")
 
-        Returns:
-            True if successful, False otherwise
-        """
-        greeting = f"Hello {user_name}! 👋\n\n" if user_name else "Hello! 👋\n\n"
-        full_message = greeting + summary_message
 
-        return self.send_whatsapp(full_message)
+def create_health_notification(db: Session, user_id: int, title: str, message: str):
+    """Create a health-related notification"""
+    return create_notification(db, user_id, title, message, "health")
+
+
+def create_system_notification(db: Session, user_id: int, title: str, message: str):
+    """Create a system notification"""
+    return create_notification(db, user_id, title, message, "system")
+
+
+def get_unread_count(db: Session, user_id: int) -> int:
+    """Get count of unread notifications for a user"""
+    return db.query(Notification).filter(
+        Notification.user_id == user_id,
+        Notification.is_read == False
+    ).count()
+
+
+def mark_all_read(db: Session, user_id: int):
+    """Mark all notifications as read for a user"""
+    db.query(Notification).filter(
+        Notification.user_id == user_id,
+        Notification.is_read == False
+    ).update({"is_read": True})
+    db.commit()

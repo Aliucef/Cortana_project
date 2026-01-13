@@ -3,7 +3,6 @@ Scheduler Service - Handles automated scheduled tasks
 """
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
-from services.notification_service import NotificationService
 from services.finance_agent import FinanceAgent
 from config.database import SessionLocal
 from models.user import User
@@ -11,6 +10,7 @@ from models.user_preferences import UserSchedulePreference
 from models.workout import GymSchedule, UserGymProfile, WorkoutPlan
 import logging
 from datetime import datetime, timedelta
+import services.notification_service as notif_service
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class SchedulerService:
 
     def __init__(self):
         self.scheduler = BackgroundScheduler()
-        self.notification_service = NotificationService()
+        # Notification service is now imported as a module (notif_service)
 
     def daily_expense_reminder(self):
         """
@@ -61,6 +61,14 @@ class SchedulerService:
                             )
                         )
                         logger.info(f"Sent daily reminder to user {user.id} via Telegram")
+
+                        # Also save notification to database
+                        notif_service.create_finance_notification(
+                            db,
+                            user.id,
+                            "Daily Expense Reminder",
+                            "Don't forget to log your expenses for today!"
+                        )
                     except Exception as e:
                         logger.error(f"Error sending daily reminder: {str(e)}")
                 else:
@@ -120,6 +128,14 @@ class SchedulerService:
                                 import time
                                 time.sleep(0.5)  # Small delay between chunks
                         logger.info("Daily news briefing sent successfully")
+
+                        # Also save notification to database
+                        notif_service.create_news_notification(
+                            db,
+                            user.id,
+                            "Daily News Briefing",
+                            "Your daily news briefing is ready!"
+                        )
                     except Exception as e:
                         logger.error(f"Error sending news briefing: {str(e)}")
 

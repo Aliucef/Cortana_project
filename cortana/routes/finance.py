@@ -488,3 +488,63 @@ def export_excel_report(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate Excel report: {str(e)}"
         )
+
+
+@router.get("/admin/overview")
+def get_admin_financial_overview(db: Session = Depends(get_db)):
+    """
+    Get financial overview across all users (admin only)
+    Returns total income, expenses, transaction count, and top categories
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    try:
+        # Get total income
+        total_income = db.query(func.sum(FinanceRecord.amount)).filter(
+            FinanceRecord.transaction_type == TransactionType.INCOME
+        ).scalar() or 0
+
+        # Get total expenses
+        total_expenses = db.query(func.sum(FinanceRecord.amount)).filter(
+            FinanceRecord.transaction_type == TransactionType.EXPENSE
+        ).scalar() or 0
+
+        # Get total transaction count
+        total_transactions = db.query(func.count(FinanceRecord.id)).scalar() or 0
+
+        # Get top spending categories
+        top_categories = db.query(
+            FinanceRecord.category,
+            func.sum(FinanceRecord.amount).label('total')
+        ).filter(
+            FinanceRecord.transaction_type == TransactionType.EXPENSE
+        ).group_by(
+            FinanceRecord.category
+        ).order_by(
+            func.sum(FinanceRecord.amount).desc()
+        ).limit(5).all()
+
+        # Format top categories
+        top_categories_list = [
+            {
+                "category": cat.category,
+                "total": float(cat.total)
+            }
+            for cat in top_categories
+        ]
+
+        return {
+            "total_income": float(total_income),
+            "total_expenses": float(total_expenses),
+            "net_balance": float(total_income - total_expenses),
+            "total_transactions": total_transactions,
+            "top_categories": top_categories_list
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to get admin financial overview: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get admin financial overview: {str(e)}"
+        )

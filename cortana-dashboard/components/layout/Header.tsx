@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Bell, User, Dumbbell, History, Plus, BookOpen, Target, TrendingUp, Bed, BarChart3, LayoutDashboard, Receipt, Repeat, DollarSign, LogOut, Shield } from "lucide-react";
-import { clearAuth, getCurrentUser, isAdmin } from "@/lib/api";
+import { clearAuth, getCurrentUser, isAdmin, getUnreadNotificationCount } from "@/lib/api";
 
 export default function Header() {
   const pathname = usePathname();
@@ -13,6 +13,7 @@ export default function Header() {
   const [darkMode, setDarkMode] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     // Sync with dark mode from localStorage
@@ -34,6 +35,26 @@ export default function Header() {
   useEffect(() => {
     // Check if user is admin
     setIsAdminUser(isAdmin());
+  }, []);
+
+  useEffect(() => {
+    // Fetch unread notification count
+    const fetchUnreadCount = async () => {
+      try {
+        const count = await getUnreadNotificationCount();
+        setUnreadCount(count);
+      } catch (error) {
+        console.error("Failed to fetch unread count:", error);
+      }
+    };
+
+    // Fetch initially
+    fetchUnreadCount();
+
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchUnreadCount, 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Navigate to health sub-pages
@@ -284,11 +305,25 @@ export default function Header() {
         {/* Right side */}
         <div className="flex items-center gap-3">
           {/* Notifications */}
-          <button className={`relative w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
-            darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
-          }`}>
-            <Bell className={`w-5 h-5 ${darkMode ? "text-gray-400" : "text-gray-600"}`} />
-            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
+          <button
+            onClick={() => navigateTo("/notifications")}
+            className={`relative w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+              pathname === "/notifications"
+                ? darkMode
+                  ? "bg-blue-900 text-blue-400"
+                  : "bg-blue-100 text-blue-600"
+                : darkMode
+                ? "hover:bg-gray-800 text-gray-400"
+                : "hover:bg-gray-100 text-gray-600"
+            }`}
+            title="Notifications"
+          >
+            <Bell className="w-5 h-5" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
           </button>
 
           {/* Admin Dashboard (only for user id 1) */}

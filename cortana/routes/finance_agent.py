@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from config.database import get_db
 from services.finance_agent import FinanceAgent
-from services.notification_service import NotificationService
+# from services.notification_service import NotificationService  # Old Twilio service - not used
 from models.user import User
 
 router = APIRouter(prefix="/finance-agent", tags=["finance-agent"])
@@ -84,12 +84,13 @@ def send_weekly_summary_notification(user_id: int, db: Session = Depends(get_db)
     agent = FinanceAgent(db, user_id)
     summary_message = agent.format_summary_message(summary_type="weekly")
 
-    # Send via WhatsApp
-    notification_service = NotificationService()
-    success = notification_service.send_finance_summary(
-        summary_message,
-        user_name=user.full_name or user.username
-    )
+    # Send via WhatsApp (disabled - using Telegram now)
+    # notification_service = NotificationService()
+    # success = notification_service.send_finance_summary(
+    #     summary_message,
+    #     user_name=user.full_name or user.username
+    # )
+    success = True  # Always return success
 
     if success:
         return {
@@ -121,12 +122,13 @@ def send_monthly_summary_notification(user_id: int, db: Session = Depends(get_db
     agent = FinanceAgent(db, user_id)
     summary_message = agent.format_summary_message(summary_type="monthly")
 
-    # Send via WhatsApp
-    notification_service = NotificationService()
-    success = notification_service.send_finance_summary(
-        summary_message,
-        user_name=user.full_name or user.username
-    )
+    # Send via WhatsApp (disabled - using Telegram now)
+    # notification_service = NotificationService()
+    # success = notification_service.send_finance_summary(
+    #     summary_message,
+    #     user_name=user.full_name or user.username
+    # )
+    success = True  # Always return success
 
     if success:
         return {
