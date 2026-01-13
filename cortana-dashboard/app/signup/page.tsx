@@ -22,6 +22,8 @@ export default function SignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [telegramLinkingCode, setTelegramLinkingCode] = useState("");
+  const [showLinkingModal, setShowLinkingModal] = useState(false);
 
   // Dark mode listener
   useEffect(() => {
@@ -71,7 +73,7 @@ export default function SignupPage() {
 
     try {
       // Register user
-      await apiSignup({
+      const signupResponse = await apiSignup({
         username: formData.username,
         email: formData.email,
         password: formData.password,
@@ -86,7 +88,15 @@ export default function SignupPage() {
       });
 
       saveAuth(loginResponse);
-      router.push("/");
+
+      // Show telegram linking modal if we got a linking code
+      if (signupResponse.telegram_linking_code) {
+        setTelegramLinkingCode(signupResponse.telegram_linking_code);
+        setShowLinkingModal(true);
+      } else {
+        // No linking code, redirect directly
+        router.push("/");
+      }
     } catch (err: any) {
       setError(err.message || "Registration failed. Please try again.");
     } finally {
@@ -446,6 +456,123 @@ export default function SignupPage() {
           </div>
         </div>
       </div>
+
+      {/* Telegram Linking Modal */}
+      {showLinkingModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div
+            className={`rounded-lg p-6 max-w-md w-full ${
+              darkMode ? "bg-gray-800" : "bg-white"
+            }`}
+          >
+            <h3
+              className={`text-2xl font-bold mb-2 ${
+                darkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
+              🎉 Account Created!
+            </h3>
+            <p
+              className={`mb-6 ${
+                darkMode ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
+              Welcome to Cortana! Your account has been successfully created.
+            </p>
+
+            <div
+              className={`border rounded-lg p-4 mb-6 ${
+                darkMode
+                  ? "bg-gray-900 border-gray-700"
+                  : "bg-gray-50 border-gray-200"
+              }`}
+            >
+              <h4
+                className={`text-sm font-semibold mb-2 ${
+                  darkMode ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
+                📱 Link Your Telegram (Optional)
+              </h4>
+              <p
+                className={`text-sm mb-3 ${
+                  darkMode ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                To use Cortana on Telegram, send this command to @CortanaBot:
+              </p>
+              <div
+                className={`flex items-center gap-2 p-3 rounded border ${
+                  darkMode
+                    ? "bg-gray-800 border-gray-600"
+                    : "bg-white border-gray-300"
+                }`}
+              >
+                <code
+                  className={`flex-1 text-sm font-mono ${
+                    darkMode ? "text-blue-400" : "text-blue-600"
+                  }`}
+                >
+                  /link {telegramLinkingCode}
+                </code>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      `/link ${telegramLinkingCode}`
+                    );
+                  }}
+                  className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                    darkMode
+                      ? "bg-blue-900 text-blue-400 hover:bg-blue-800"
+                      : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                  }`}
+                >
+                  Copy
+                </button>
+              </div>
+              <p
+                className={`text-xs mt-2 ${
+                  darkMode ? "text-gray-500" : "text-gray-500"
+                }`}
+              >
+                This code expires in 24 hours
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowLinkingModal(false);
+                  router.push("/");
+                }}
+                className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
+                  darkMode
+                    ? "bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600"
+                    : "bg-gray-100 border-gray-200 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                Skip for Now
+              </button>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    `/link ${telegramLinkingCode}`
+                  );
+                  setShowLinkingModal(false);
+                  router.push("/");
+                }}
+                className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
+                  darkMode
+                    ? "bg-blue-900 border-blue-800 text-blue-400 hover:bg-blue-800"
+                    : "bg-blue-100 border-blue-200 text-blue-700 hover:bg-blue-200"
+                }`}
+              >
+                Copy & Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

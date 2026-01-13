@@ -11,6 +11,7 @@ export default function Header() {
   const isHealthPage = pathname?.startsWith("/health");
   const isFinancePage = pathname?.startsWith("/finance");
   const [darkMode, setDarkMode] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
     // Sync with dark mode from localStorage
@@ -37,8 +38,17 @@ export default function Header() {
   const isActivePage = (path: string) => pathname === path;
 
   const handleLogout = () => {
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = () => {
     clearAuth();
+    setShowLogoutModal(false);
     router.push("/login");
+  };
+
+  const cancelLogout = () => {
+    setShowLogoutModal(false);
   };
 
   // Hide header on login/signup pages (AFTER all hooks)
@@ -306,6 +316,48 @@ export default function Header() {
           </button>
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className={`rounded-lg p-6 max-w-sm w-full mx-4 ${
+            darkMode ? "bg-gray-800" : "bg-white"
+          }`}>
+            <h3 className={`text-xl font-semibold mb-2 ${
+              darkMode ? "text-white" : "text-gray-900"
+            }`}>
+              Confirm Logout
+            </h3>
+            <p className={`mb-6 ${
+              darkMode ? "text-gray-400" : "text-gray-600"
+            }`}>
+              Are you sure you want to logout?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={cancelLogout}
+                className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
+                  darkMode
+                    ? "bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600"
+                    : "bg-gray-100 border-gray-200 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmLogout}
+                className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
+                  darkMode
+                    ? "bg-red-900 border-red-800 text-red-400 hover:bg-red-800"
+                    : "bg-red-100 border-red-200 text-red-700 hover:bg-red-200"
+                }`}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

@@ -13,6 +13,7 @@ import threading
 # Import models to ensure they're registered
 from models.budget import Budget, CategoryGoal
 from models.user_preferences import UserSchedulePreference
+from models.telegram_link import TelegramLink
 from models.workout import (
     UserGymProfile, WorkoutPlan, WorkoutLog, WeightLog, GymSchedule,
     PersonalRecord, WorkoutNote, RestDay, Exercise, WorkoutTemplate
@@ -44,10 +45,9 @@ async def startup_event():
     scheduler.start()
 
     # Start Telegram bot in background
-    # Temporarily disabled to prevent conflict errors
-    # if settings.telegram_bot_token:
-    #     asyncio.create_task(telegram_bot.start_polling())
-    #     print("Telegram bot started!")
+    if settings.telegram_bot_token:
+        asyncio.create_task(telegram_bot.start_polling())
+        print("✅ Telegram bot started!")
 
 # Shutdown event
 @app.on_event("shutdown")

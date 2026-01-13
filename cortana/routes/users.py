@@ -5,12 +5,13 @@ from config.database import get_db
 from models.user import User
 from api.schemas import UserCreate, UserResponse, UserUpdate, PasswordChange
 from routes.auth import get_current_user
+from services.telegram_link_service import generate_linking_code
 
 router = APIRouter(prefix="/users", tags=["users"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/register", status_code=status.HTTP_201_CREATED)
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
     """Register a new user"""
     # Check if username exists
@@ -42,7 +43,18 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_user)
 
-    return db_user
+    # Generate Telegram linking code
+    linking_code = generate_linking_code(db_user.id, db)
+
+    return {
+        "id": db_user.id,
+        "username": db_user.username,
+        "email": db_user.email,
+        "full_name": db_user.full_name,
+        "phone_number": db_user.phone_number,
+        "telegram_linking_code": linking_code,
+        "message": "Account created successfully! Use the linking code to connect your Telegram account."
+    }
 
 
 @router.get("/me", response_model=UserResponse)

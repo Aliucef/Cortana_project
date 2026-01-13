@@ -21,15 +21,37 @@ class TelegramService:
 
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /start command"""
-        user_id = update.effective_user.id
+        telegram_user_id = str(update.effective_user.id)
 
-        if user_id != self.allowed_user_id:
-            await update.message.reply_text(
-                "Sorry, this bot is private and only accessible to authorized users."
-            )
-            return
+        # Check if user is linked
+        from services.telegram_link_service import get_user_by_telegram_id
+        from config.database import SessionLocal
 
-        welcome_message = """
+        db = SessionLocal()
+        try:
+            user = get_user_by_telegram_id(telegram_user_id, db)
+
+            if not user:
+                await update.message.reply_text(
+                    "🔷 *Welcome to Cortana!*\n\n"
+                    "I'm your AI-powered personal assistant.\n\n"
+                    "*To get started:*\n"
+                    "1. Register at the web dashboard\n"
+                    "2. You'll receive a linking code\n"
+                    "3. Send `/link YOUR-CODE` here\n\n"
+                    "Once linked, I can help you with:\n"
+                    "💰 Finance tracking\n"
+                    "💪 Workout planning\n"
+                    "📰 News updates\n"
+                    "And much more!\n\n"
+                    "Questions? Send /help",
+                    parse_mode='Markdown'
+                )
+                return
+        finally:
+            db.close()
+
+        welcome_message = f"""
 *Cortana online.* 🔷
 
 I'm your AI-powered financial advisor - think of me as your personal UNSC finance officer, minus the bureaucracy.
@@ -120,25 +142,37 @@ Need help? Just ask me anything! 😊
         if len(self.processed_updates) > 1000:
             self.processed_updates = set(list(self.processed_updates)[-1000:])
 
-        user_id = update.effective_user.id
-
-        if user_id != self.allowed_user_id:
-            await update.message.reply_text(
-                "Sorry, this bot is private and only accessible to authorized users."
-            )
-            return
-
+        telegram_user_id = str(update.effective_user.id)
         message_text = update.message.text
-        logger.info(f"Telegram message from {user_id}: {message_text}")
 
         # Import here to avoid circular imports
         from services.telegram_message_handler import process_telegram_message
+        from services.telegram_link_service import get_user_by_telegram_id
         from config.database import SessionLocal
 
         db = SessionLocal()
         try:
+            # Check if user has linked their account
+            user = get_user_by_telegram_id(telegram_user_id, db)
+
+            if not user:
+                await update.message.reply_text(
+                    "🔷 *Account Not Linked*\n\n"
+                    "Your Telegram account is not linked to Cortana yet.\n\n"
+                    "*To get started:*\n"
+                    "1. Register at the web dashboard\n"
+                    "2. Copy your linking code\n"
+                    "3. Send `/link YOUR-CODE` here\n\n"
+                    "Need help? Send /help",
+                    parse_mode='Markdown'
+                )
+                return
+
+            logger.info(f"Telegram message from {user.username} (ID: {user.id}): {message_text}")
+
+            # Process message with actual user_id from database
             response = await process_telegram_message(
-                user_id=self.allowed_user_id,
+                user_id=user.id,  # Use the database user ID
                 message_text=message_text,
                 db=db,
                 context_data=context.user_data
@@ -166,15 +200,24 @@ Need help? Just ask me anything! 😊
 
     async def handle_voice(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle incoming voice messages"""
-        user_id = update.effective_user.id
+        telegram_user_id = str(update.effective_user.id)
 
-        if user_id != self.allowed_user_id:
-            await update.message.reply_text(
-                "Sorry, this bot is private and only accessible to authorized users."
-            )
-            return
+        # Check if user is linked
+        from services.telegram_link_service import get_user_by_telegram_id
+        from config.database import SessionLocal
 
-        logger.info(f"Telegram voice message from {user_id}")
+        db = SessionLocal()
+        try:
+            user = get_user_by_telegram_id(telegram_user_id, db)
+            if not user:
+                await update.message.reply_text(
+                    "Please link your account first using /link command."
+                )
+                return
+        finally:
+            db.close()
+
+        logger.info(f"Telegram voice message from {user.username} (ID: {user.id})")
 
         # Get the voice file
         voice = update.message.voice
@@ -291,15 +334,24 @@ Need help? Just ask me anything! 😊
 
     async def handle_photo(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle incoming photos (receipt scanning)"""
-        user_id = update.effective_user.id
+        telegram_user_id = str(update.effective_user.id)
 
-        if user_id != self.allowed_user_id:
-            await update.message.reply_text(
-                "Sorry, this bot is private and only accessible to authorized users."
-            )
-            return
+        # Check if user is linked
+        from services.telegram_link_service import get_user_by_telegram_id
+        from config.database import SessionLocal
 
-        logger.info(f"Telegram photo message from {user_id}")
+        db = SessionLocal()
+        try:
+            user = get_user_by_telegram_id(telegram_user_id, db)
+            if not user:
+                await update.message.reply_text(
+                    "Please link your account first using /link command."
+                )
+                return
+        finally:
+            db.close()
+
+        logger.info(f"Telegram photo message from {user.username} (ID: {user.id})")
         await update.message.reply_text("Scanning receipt... 🔍")
 
         # Get the largest photo (best quality)
@@ -362,10 +414,68 @@ Need help? Just ask me anything! 😊
                 "Sorry, I couldn't process that receipt. Try again with a clearer photo!"
             )
 
+    async def link_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /link command to link Telegram account to web dashboard"""
+        telegram_user_id = str(update.effective_user.id)
+
+        # Check if arguments provided
+        if not context.args or len(context.args) == 0:
+            await update.message.reply_text(
+                "🔷 *Link Your Telegram Account*\n\n"
+                "Usage: `/link YOUR-CODE`\n\n"
+                "Get your linking code from the web dashboard after signing up:\n"
+                "1. Register at the dashboard\n"
+                "2. Copy your linking code\n"
+                "3. Send `/link YOUR-CODE` here\n\n"
+                "Example: `/link TG-ABC123XY`",
+                parse_mode='Markdown'
+            )
+            return
+
+        linking_code = context.args[0].strip().upper()
+
+        # Import services
+        from services.telegram_link_service import verify_and_link_telegram
+        from config.database import SessionLocal
+
+        db = SessionLocal()
+        try:
+            result = verify_and_link_telegram(linking_code, telegram_user_id, db)
+
+            if result["success"]:
+                user = result["user"]
+                await update.message.reply_text(
+                    f"✅ *Account Linked Successfully!*\n\n"
+                    f"Your Telegram is now linked to: {user.email}\n\n"
+                    f"You can now use all Cortana features:\n"
+                    f"• 'I spent $50 on groceries'\n"
+                    f"• 'Send me my weekly summary'\n"
+                    f"• 'What's my workout plan?'\n\n"
+                    f"Type /help to see all available commands!",
+                    parse_mode='Markdown'
+                )
+            else:
+                await update.message.reply_text(
+                    f"❌ *Linking Failed*\n\n"
+                    f"{result['message']}\n\n"
+                    f"Please check your code and try again.",
+                    parse_mode='Markdown'
+                )
+        except Exception as e:
+            logger.error(f"Error in link command: {str(e)}", exc_info=True)
+            await update.message.reply_text(
+                f"❌ An error occurred while linking your account.\n\n"
+                f"Error: {str(e)}\n\n"
+                f"Please try again later or contact support."
+            )
+        finally:
+            db.close()
+
     def setup_handlers(self):
         """Set up message handlers"""
         self.application.add_handler(CommandHandler("start", self.start_command))
         self.application.add_handler(CommandHandler("help", self.help_command))
+        self.application.add_handler(CommandHandler("link", self.link_command))
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_message))
         self.application.add_handler(MessageHandler(filters.VOICE, self.handle_voice))
         self.application.add_handler(MessageHandler(filters.PHOTO, self.handle_photo))
