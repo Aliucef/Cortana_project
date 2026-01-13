@@ -19,6 +19,10 @@ import {
   Trash2,
   AlertCircle,
   Loader2,
+  MessageCircle,
+  Link as LinkIcon,
+  Unlink,
+  Copy,
 } from "lucide-react";
 import {
   getCurrentUserProfile,
@@ -27,6 +31,9 @@ import {
   deleteUserAccount,
   isAuthenticated,
   clearAuth,
+  getTelegramStatus,
+  generateTelegramLinkingCode,
+  unlinkTelegram,
   type User,
 } from "@/lib/api";
 
@@ -58,6 +65,13 @@ export default function ProfilePage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
 
+  // Telegram state
+  const [telegramLinked, setTelegramLinked] = useState(false);
+  const [telegramLoading, setTelegramLoading] = useState(false);
+  const [showTelegramModal, setShowTelegramModal] = useState(false);
+  const [telegramLinkingCode, setTelegramLinkingCode] = useState("");
+  const [showUnlinkModal, setShowUnlinkModal] = useState(false);
+
   // Check authentication
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -83,6 +97,7 @@ export default function ProfilePage() {
   // Load user data
   useEffect(() => {
     loadUserData();
+    loadTelegramStatus();
   }, []);
 
   const loadUserData = async () => {
@@ -99,6 +114,15 @@ export default function ProfilePage() {
       alert("Failed to load user data. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTelegramStatus = async () => {
+    try {
+      const status = await getTelegramStatus();
+      setTelegramLinked(status.is_linked);
+    } catch (error) {
+      console.error("Failed to load Telegram status:", error);
     }
   };
 
@@ -186,6 +210,40 @@ export default function ProfilePage() {
     setDarkMode(newDarkMode);
     localStorage.setItem("darkMode", String(newDarkMode));
     window.dispatchEvent(new Event("darkModeChange"));
+  };
+
+  const handleGenerateTelegramCode = async () => {
+    setTelegramLoading(true);
+    try {
+      const response = await generateTelegramLinkingCode();
+      setTelegramLinkingCode(response.telegram_linking_code);
+      setShowTelegramModal(true);
+    } catch (error: any) {
+      console.error("Failed to generate linking code:", error);
+      alert(error.message || "Failed to generate linking code. Please try again.");
+    } finally {
+      setTelegramLoading(false);
+    }
+  };
+
+  const handleCopyTelegramCode = () => {
+    navigator.clipboard.writeText(`/link ${telegramLinkingCode}`);
+    alert("Linking command copied to clipboard!");
+  };
+
+  const handleUnlinkTelegram = async () => {
+    setTelegramLoading(true);
+    try {
+      await unlinkTelegram();
+      setTelegramLinked(false);
+      setShowUnlinkModal(false);
+      alert("Telegram account unlinked successfully!");
+    } catch (error: any) {
+      console.error("Failed to unlink Telegram:", error);
+      alert(error.message || "Failed to unlink Telegram. Please try again.");
+    } finally {
+      setTelegramLoading(false);
+    }
   };
 
   if (loading) {
@@ -658,6 +716,187 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Telegram Integration Card */}
+          <div
+            className={`border rounded-xl p-4 sm:p-6 ${
+              darkMode
+                ? "bg-gray-800 border-gray-700"
+                : "bg-white border-gray-200"
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-6">
+              <MessageCircle className="w-5 h-5 text-blue-600" />
+              <h2
+                className={`text-lg font-semibold ${
+                  darkMode ? "text-white" : "text-gray-900"
+                }`}
+              >
+                Telegram Integration
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              {/* Telegram Status */}
+              <div
+                className={`flex items-center justify-between p-4 rounded-lg border ${
+                  telegramLinked
+                    ? darkMode
+                      ? "bg-green-900/20 border-green-800"
+                      : "bg-green-50 border-green-200"
+                    : darkMode
+                    ? "bg-gray-900/50 border-gray-700"
+                    : "bg-gray-50 border-gray-200"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <MessageCircle
+                    className={`w-5 h-5 ${
+                      telegramLinked ? "text-green-600" : "text-gray-500"
+                    }`}
+                  />
+                  <div>
+                    <p
+                      className={`font-medium ${
+                        darkMode ? "text-white" : "text-gray-900"
+                      }`}
+                    >
+                      Telegram Status
+                    </p>
+                    <p
+                      className={`text-sm ${
+                        telegramLinked
+                          ? darkMode
+                            ? "text-green-400"
+                            : "text-green-700"
+                          : darkMode
+                          ? "text-gray-400"
+                          : "text-gray-600"
+                      }`}
+                    >
+                      {telegramLinked ? "Connected" : "Not connected"}
+                    </p>
+                  </div>
+                </div>
+                <div
+                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    telegramLinked
+                      ? darkMode
+                        ? "bg-green-900 text-green-400"
+                        : "bg-green-100 text-green-700"
+                      : darkMode
+                      ? "bg-gray-700 text-gray-400"
+                      : "bg-gray-200 text-gray-600"
+                  }`}
+                >
+                  {telegramLinked ? "Linked" : "Not Linked"}
+                </div>
+              </div>
+
+              {/* Link/Unlink Actions */}
+              {!telegramLinked ? (
+                <div
+                  className={`p-4 rounded-lg border ${
+                    darkMode
+                      ? "bg-blue-900/20 border-blue-800"
+                      : "bg-blue-50 border-blue-200"
+                  }`}
+                >
+                  <div className="flex items-start gap-3 mb-4">
+                    <LinkIcon
+                      className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
+                        darkMode ? "text-blue-400" : "text-blue-600"
+                      }`}
+                    />
+                    <div>
+                      <p
+                        className={`font-medium mb-1 ${
+                          darkMode ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        Link Your Telegram Account
+                      </p>
+                      <p
+                        className={`text-sm ${
+                          darkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
+                      >
+                        Connect your Telegram account to use Cortana AI Assistant
+                        through Telegram messenger. You'll be able to track
+                        expenses, get news updates, and more!
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleGenerateTelegramCode}
+                    disabled={telegramLoading}
+                    className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors border flex items-center justify-center gap-2 ${
+                      darkMode
+                        ? "bg-blue-900 border-blue-800 text-blue-400 hover:bg-blue-800"
+                        : "bg-blue-100 border-blue-200 text-blue-700 hover:bg-blue-200"
+                    }`}
+                  >
+                    {telegramLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <LinkIcon className="w-4 h-4" />
+                        Generate Linking Code
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : (
+                <div
+                  className={`p-4 rounded-lg border ${
+                    darkMode
+                      ? "bg-orange-900/20 border-orange-800"
+                      : "bg-orange-50 border-orange-200"
+                  }`}
+                >
+                  <div className="flex items-start gap-3 mb-4">
+                    <Unlink
+                      className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
+                        darkMode ? "text-orange-400" : "text-orange-600"
+                      }`}
+                    />
+                    <div>
+                      <p
+                        className={`font-medium mb-1 ${
+                          darkMode ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        Unlink Telegram Account
+                      </p>
+                      <p
+                        className={`text-sm ${
+                          darkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
+                      >
+                        Your Telegram account is currently linked. You can unlink
+                        it if you no longer wish to use Cortana through Telegram.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowUnlinkModal(true)}
+                    disabled={telegramLoading}
+                    className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors border flex items-center justify-center gap-2 ${
+                      darkMode
+                        ? "bg-orange-900 border-orange-800 text-orange-400 hover:bg-orange-800"
+                        : "bg-orange-100 border-orange-200 text-orange-700 hover:bg-orange-200"
+                    }`}
+                  >
+                    <Unlink className="w-4 h-4" />
+                    Unlink Telegram
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Account Info Card */}
           <div
             className={`border rounded-xl p-4 sm:p-6 ${
@@ -991,6 +1230,222 @@ export default function ProfilePage() {
                     </>
                   ) : (
                     "Delete Account"
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Telegram Linking Code Modal */}
+      <AnimatePresence>
+        {showTelegramModal && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowTelegramModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className={`rounded-xl p-6 max-w-md w-full ${
+                darkMode ? "bg-gray-800" : "bg-white"
+              }`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <MessageCircle className="w-6 h-6 text-blue-600" />
+                  <h2
+                    className={`text-xl font-bold ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    Link Telegram Account
+                  </h2>
+                </div>
+                <button
+                  onClick={() => setShowTelegramModal(false)}
+                  className={`p-2 rounded-lg transition-all ${
+                    darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+                  }`}
+                >
+                  <X
+                    className={`w-5 h-5 ${
+                      darkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="mb-6">
+                <div
+                  className={`p-4 rounded-lg border mb-4 ${
+                    darkMode
+                      ? "bg-blue-900/20 border-blue-800"
+                      : "bg-blue-50 border-blue-200"
+                  }`}
+                >
+                  <p
+                    className={`text-sm mb-3 ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    To link your Telegram account, send this command to the Cortana bot:
+                  </p>
+                  <div
+                    className={`p-3 rounded-lg font-mono text-center ${
+                      darkMode
+                        ? "bg-gray-900 text-blue-400"
+                        : "bg-white text-blue-600"
+                    }`}
+                  >
+                    /link {telegramLinkingCode}
+                  </div>
+                </div>
+
+                <div
+                  className={`p-3 rounded-lg border ${
+                    darkMode
+                      ? "bg-yellow-900/20 border-yellow-800"
+                      : "bg-yellow-50 border-yellow-200"
+                  }`}
+                >
+                  <p
+                    className={`text-sm flex items-start gap-2 ${
+                      darkMode ? "text-yellow-400" : "text-yellow-700"
+                    }`}
+                  >
+                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>This code expires in 24 hours</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowTelegramModal(false)}
+                  className={`flex-1 py-3 rounded-lg font-semibold text-sm transition-colors ${
+                    darkMode
+                      ? "bg-gray-700 hover:bg-gray-600 text-white"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                  }`}
+                >
+                  Close
+                </button>
+                <button
+                  onClick={handleCopyTelegramCode}
+                  className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+                >
+                  <Copy className="w-4 h-4" />
+                  Copy Command
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Unlink Telegram Confirmation Modal */}
+      <AnimatePresence>
+        {showUnlinkModal && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => !telegramLoading && setShowUnlinkModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className={`rounded-xl p-6 max-w-md w-full ${
+                darkMode ? "bg-gray-800" : "bg-white"
+              }`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Unlink className="w-6 h-6 text-orange-600" />
+                  <h2
+                    className={`text-xl font-bold ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    Unlink Telegram
+                  </h2>
+                </div>
+                <button
+                  onClick={() => setShowUnlinkModal(false)}
+                  disabled={telegramLoading}
+                  className={`p-2 rounded-lg transition-all ${
+                    darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+                  }`}
+                >
+                  <X
+                    className={`w-5 h-5 ${
+                      darkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="mb-6">
+                <div
+                  className={`p-4 rounded-lg border ${
+                    darkMode
+                      ? "bg-orange-900/20 border-orange-800"
+                      : "bg-orange-50 border-orange-200"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p
+                        className={`font-semibold mb-2 ${
+                          darkMode ? "text-orange-400" : "text-orange-900"
+                        }`}
+                      >
+                        Are you sure you want to unlink?
+                      </p>
+                      <p
+                        className={`text-sm ${
+                          darkMode ? "text-orange-300" : "text-orange-700"
+                        }`}
+                      >
+                        You will no longer be able to use Cortana through Telegram. You can always link again later by generating a new code.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowUnlinkModal(false)}
+                  disabled={telegramLoading}
+                  className={`flex-1 py-3 rounded-lg font-semibold text-sm transition-colors ${
+                    darkMode
+                      ? "bg-gray-700 hover:bg-gray-600 text-white"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUnlinkTelegram}
+                  disabled={telegramLoading}
+                  className="flex-1 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+                >
+                  {telegramLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Unlinking...
+                    </>
+                  ) : (
+                    <>
+                      <Unlink className="w-4 h-4" />
+                      Unlink
+                    </>
                   )}
                 </button>
               </div>

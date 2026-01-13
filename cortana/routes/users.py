@@ -5,7 +5,7 @@ from config.database import get_db
 from models.user import User
 from api.schemas import UserCreate, UserResponse, UserUpdate, PasswordChange
 from routes.auth import get_current_user
-from services.telegram_link_service import generate_linking_code
+from services.telegram_link_service import generate_linking_code, unlink_telegram
 
 router = APIRouter(prefix="/users", tags=["users"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -135,6 +135,62 @@ def change_password(
     db.commit()
 
     return {"message": "Password changed successfully"}
+
+
+@router.post("/me/telegram/generate-code")
+def generate_telegram_linking_code(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate a new Telegram linking code for current user"""
+    if current_user.telegram_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Telegram account already linked. Unlink first to generate a new code."
+        )
+
+    # Generate new linking code
+    linking_code = generate_linking_code(current_user.id, db)
+
+    return {
+        "telegram_linking_code": linking_code,
+        "message": "Linking code generated. It expires in 24 hours."
+    }
+
+
+@router.delete("/me/telegram/unlink", status_code=status.HTTP_200_OK)
+def unlink_telegram_account(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Unlink Telegram account from current user"""
+    if not current_user.telegram_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No Telegram account linked"
+        )
+
+    # Unlink the account
+    success = unlink_telegram(current_user.id, db)
+
+    if success:
+        return {"message": "Telegram account unlinked successfully"}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to unlink Telegram account"
+        )
+
+
+@router.get("/me/telegram/status")
+def get_telegram_status(
+    current_user: User = Depends(get_current_user)
+):
+    """Get Telegram linking status for current user"""
+    return {
+        "is_linked": bool(current_user.telegram_user_id),
+        "telegram_user_id": current_user.telegram_user_id if current_user.telegram_user_id else None
+    }
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)

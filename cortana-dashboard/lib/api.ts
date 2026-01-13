@@ -177,6 +177,14 @@ export function getCurrentUserId(): number {
   return user?.id || DEFAULT_USER_ID;
 }
 
+/**
+ * Check if current user is admin (user ID 1)
+ */
+export function isAdmin(): boolean {
+  const user = getCurrentUser();
+  return user?.id === 1;
+}
+
 // ==================== FINANCE API ====================
 
 export interface FinanceRecord {
@@ -819,6 +827,37 @@ export async function deleteUserAccount(): Promise<void> {
 }
 
 /**
+ * Get Telegram linking status
+ */
+export async function getTelegramStatus(): Promise<{
+  is_linked: boolean;
+  telegram_user_id: string | null;
+}> {
+  return apiCall("/users/me/telegram/status");
+}
+
+/**
+ * Generate Telegram linking code
+ */
+export async function generateTelegramLinkingCode(): Promise<{
+  telegram_linking_code: string;
+  message: string;
+}> {
+  return apiCall("/users/me/telegram/generate-code", {
+    method: "POST",
+  });
+}
+
+/**
+ * Unlink Telegram account
+ */
+export async function unlinkTelegram(): Promise<{ message: string }> {
+  return apiCall("/users/me/telegram/unlink", {
+    method: "DELETE",
+  });
+}
+
+/**
  * Get user info (legacy - by ID)
  */
 export async function getUser(userId: number = DEFAULT_USER_ID): Promise<User> {
@@ -836,6 +875,61 @@ export async function updateUser(data: {
   return apiCall(`/users/${DEFAULT_USER_ID}`, {
     method: "PUT",
     body: JSON.stringify(data),
+  });
+}
+
+// ==================== ADMIN API ====================
+
+export interface AdminStats {
+  total_users: number;
+  new_users_this_week: number;
+  new_users_this_month: number;
+  telegram_linked_users: number;
+  active_users: number;
+  recent_signups: User[];
+}
+
+/**
+ * Get all users (admin only)
+ */
+export async function getAllUsers(skip: number = 0, limit: number = 100): Promise<User[]> {
+  return apiCall(`/users/?skip=${skip}&limit=${limit}`);
+}
+
+/**
+ * Get admin statistics
+ */
+export async function getAdminStats(): Promise<AdminStats> {
+  const users = await getAllUsers(0, 1000);
+
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+  const newUsersThisWeek = users.filter(u => new Date(u.created_at) >= weekAgo).length;
+  const newUsersThisMonth = users.filter(u => new Date(u.created_at) >= monthAgo).length;
+
+  // Sort by created_at descending and take first 5
+  const recentSignups = [...users]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 5);
+
+  return {
+    total_users: users.length,
+    new_users_this_week: newUsersThisWeek,
+    new_users_this_month: newUsersThisMonth,
+    telegram_linked_users: 0, // We'll need to enhance this with actual data
+    active_users: users.length, // Placeholder
+    recent_signups: recentSignups,
+  };
+}
+
+/**
+ * Delete a user by ID (admin only)
+ */
+export async function deleteUser(userId: number): Promise<void> {
+  return apiCall(`/users/${userId}`, {
+    method: "DELETE",
   });
 }
 

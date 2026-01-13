@@ -2,8 +2,8 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Bell, User, Dumbbell, History, Plus, BookOpen, Target, TrendingUp, Bed, BarChart3, LayoutDashboard, Receipt, Repeat, DollarSign, LogOut } from "lucide-react";
-import { clearAuth, getCurrentUser } from "@/lib/api";
+import { Bell, User, Dumbbell, History, Plus, BookOpen, Target, TrendingUp, Bed, BarChart3, LayoutDashboard, Receipt, Repeat, DollarSign, LogOut, Shield } from "lucide-react";
+import { clearAuth, getCurrentUser, isAdmin } from "@/lib/api";
 
 export default function Header() {
   const pathname = usePathname();
@@ -12,6 +12,7 @@ export default function Header() {
   const isFinancePage = pathname?.startsWith("/finance");
   const [darkMode, setDarkMode] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
 
   useEffect(() => {
     // Sync with dark mode from localStorage
@@ -28,6 +29,11 @@ export default function Header() {
     return () => {
       window.removeEventListener("darkModeChange", handleDarkModeChange);
     };
+  }, []);
+
+  useEffect(() => {
+    // Check if user is admin
+    setIsAdminUser(isAdmin());
   }, []);
 
   // Navigate to health sub-pages
@@ -284,6 +290,25 @@ export default function Header() {
             <Bell className={`w-5 h-5 ${darkMode ? "text-gray-400" : "text-gray-600"}`} />
             <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
           </button>
+
+          {/* Admin Dashboard (only for user id 1) */}
+          {isAdminUser && (
+            <button
+              onClick={() => navigateTo("/admin")}
+              className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+                pathname === "/admin"
+                  ? darkMode
+                    ? "bg-purple-900 text-purple-400"
+                    : "bg-purple-100 text-purple-600"
+                  : darkMode
+                  ? "bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-purple-400"
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-purple-600"
+              }`}
+              title="Admin Dashboard"
+            >
+              <Shield className="w-5 h-5" />
+            </button>
+          )}
 
           {/* User Profile */}
           <button
