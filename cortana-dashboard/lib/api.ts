@@ -176,7 +176,11 @@ export function isAuthenticated(): boolean {
  */
 export function getCurrentUserId(): number {
   const user = getCurrentUser();
-  return user?.id || DEFAULT_USER_ID;
+  if (!user || !user.id) {
+    console.error("getCurrentUserId: No user found in localStorage");
+    return DEFAULT_USER_ID;
+  }
+  return user.id;
 }
 
 /**
@@ -247,11 +251,11 @@ export interface RecurringExpense {
  * Get financial summary
  */
 export async function getFinanceSummary(
-  userId: number = DEFAULT_USER_ID,
   period: "weekly" | "monthly" | "custom" = "monthly",
   startDate?: string,
   endDate?: string
 ): Promise<FinanceSummary> {
+  const userId = getCurrentUserId(); // Get authenticated user ID
   let url = `/finance/summary/${userId}?period=${period}`;
 
   // Add custom date range if provided
@@ -265,9 +269,8 @@ export async function getFinanceSummary(
 /**
  * Get all finance records
  */
-export async function getFinanceRecords(
-  userId: number = DEFAULT_USER_ID
-): Promise<FinanceRecord[]> {
+export async function getFinanceRecords(): Promise<FinanceRecord[]> {
+  const userId = getCurrentUserId(); // Get authenticated user ID
   return apiCall(`/finance/user/${userId}`); // Backend route is /finance/user/{user_id}
 }
 
@@ -281,15 +284,28 @@ export async function addFinanceRecord(data: {
   description?: string;
   date?: string;
 }): Promise<FinanceRecord> {
+  // Convert date to proper ISO timestamp with current time
+  let transactionDate: string;
+  if (data.date) {
+    // If date provided (YYYY-MM-DD format), use current time for that date
+    const dateObj = new Date(data.date + 'T00:00:00');
+    const now = new Date();
+    dateObj.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+    transactionDate = dateObj.toISOString();
+  } else {
+    // Use current date and time
+    transactionDate = new Date().toISOString();
+  }
+
   return apiCall("/finance/", {
     method: "POST",
     body: JSON.stringify({
-      user_id: DEFAULT_USER_ID,
+      // user_id is now obtained from JWT token in the backend
       transaction_type: data.type, // Backend expects 'transaction_type'
-      transaction_date: data.date || new Date().toISOString(), // Backend expects 'transaction_date'
+      transaction_date: transactionDate, // Backend expects 'transaction_date'
       amount: data.amount,
       category: data.category,
-      description: data.description,
+      description: data.description || "", // Ensure description is never undefined
     }),
   });
 }
@@ -332,10 +348,9 @@ export async function deleteFinanceRecord(recordId: number): Promise<void> {
 /**
  * Get user's budget
  */
-export async function getBudget(
-  userId: number = DEFAULT_USER_ID
-): Promise<Budget | null> {
+export async function getBudget(): Promise<Budget | null> {
   try {
+    const userId = getCurrentUserId(); // Get authenticated user ID
     const budgets = await apiCall<Budget[]>(`/budget/${userId}`);
     // Backend returns array, get the first (most recent) budget
     return budgets && budgets.length > 0 ? budgets[0] : null;
@@ -354,7 +369,7 @@ export async function createBudget(data: {
   return apiCall("/budget/", {
     method: "POST",
     body: JSON.stringify({
-      user_id: DEFAULT_USER_ID,
+      // user_id is now obtained from JWT token in the backend
       amount: data.total_budget, // Backend expects 'amount', not 'total_budget'
       period: data.period,
     }),
@@ -364,9 +379,8 @@ export async function createBudget(data: {
 /**
  * Get category goals
  */
-export async function getCategoryGoals(
-  userId: number = DEFAULT_USER_ID
-): Promise<CategoryGoal[]> {
+export async function getCategoryGoals(): Promise<CategoryGoal[]> {
+  const userId = getCurrentUserId(); // Get authenticated user ID
   return apiCall(`/budget/category-goal/${userId}`);
 }
 
@@ -382,7 +396,7 @@ export async function createCategoryGoal(data: {
   return apiCall("/budget/category-goal", {
     method: "POST",
     body: JSON.stringify({
-      user_id: DEFAULT_USER_ID,
+      // user_id is now obtained from JWT token in the backend
       category: data.category,
       goal_amount: data.goal_amount,
       period: data.period,
@@ -429,9 +443,8 @@ export async function deleteCategoryGoal(goalId: number): Promise<void> {
 /**
  * Get all recurring expenses for a user
  */
-export async function getRecurringExpenses(
-  userId: number = DEFAULT_USER_ID
-): Promise<RecurringExpense[]> {
+export async function getRecurringExpenses(): Promise<RecurringExpense[]> {
+  const userId = getCurrentUserId(); // Get authenticated user ID
   return apiCall(`/recurring-expenses/user/${userId}`);
 }
 
@@ -449,7 +462,7 @@ export async function createRecurringExpense(data: {
   return apiCall("/recurring-expenses/", {
     method: "POST",
     body: JSON.stringify({
-      user_id: DEFAULT_USER_ID,
+      // user_id is now obtained from JWT token in the backend
       name: data.name,
       amount: data.amount,
       category: data.category,
@@ -1068,7 +1081,7 @@ export async function getDashboardOverview(
   // This would be a custom endpoint, or we aggregate from multiple calls
   // For now, we'll aggregate client-side
   const [financeSummary, weightLogs, workoutLogs] = await Promise.all([
-    getFinanceSummary(userId).catch(() => ({
+    getFinanceSummary().catch(() => ({
       total_expenses: 0,
       total_income: 0,
       net_balance: 0,

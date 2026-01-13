@@ -41,7 +41,7 @@ class PasswordChange(BaseModel):
 
 # Finance Schemas
 class FinanceRecordCreate(BaseModel):
-    user_id: int
+    # user_id is now obtained from JWT token (not sent in request body)
     amount: float
     transaction_type: TransactionType
     category: str

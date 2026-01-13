@@ -16,11 +16,12 @@ router = APIRouter(prefix="/finance", tags=["finance"])
 @router.post("/", response_model=FinanceRecordResponse, status_code=status.HTTP_201_CREATED)
 def create_finance_record(
     record: FinanceRecordCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id)
 ):
     """Create a new finance record"""
     db_record = FinanceRecord(
-        user_id=record.user_id,
+        user_id=current_user_id,  # Use authenticated user ID from JWT
         amount=record.amount,
         transaction_type=record.transaction_type,
         category=record.category,
@@ -40,10 +41,10 @@ def create_finance_record(
             import logging
             logger = logging.getLogger(__name__)
 
-            personal_context = PersonalContextService(db, record.user_id)
+            personal_context = PersonalContextService(db, current_user_id)
             # Regenerate expense insights with new data
             personal_context.generate_expense_insights(days=30)
-            logger.info(f"Auto-vectorized expense for user {record.user_id}")
+            logger.info(f"Auto-vectorized expense for user {current_user_id}")
         except Exception as e:
             # Don't fail the request if vectorization fails
             import logging
@@ -71,7 +72,7 @@ def get_user_finance_records(
     records = (
         db.query(FinanceRecord)
         .filter(FinanceRecord.user_id == user_id)
-        .order_by(FinanceRecord.transaction_date.desc())
+        .order_by(FinanceRecord.transaction_date.desc(), FinanceRecord.id.desc())
         .offset(skip)
         .limit(limit)
         .all()

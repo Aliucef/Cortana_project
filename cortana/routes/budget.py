@@ -13,13 +13,13 @@ router = APIRouter(prefix="/budget", tags=["budget"])
 
 
 class BudgetCreate(BaseModel):
-    user_id: int
+    # user_id is now obtained from JWT token (not sent in request body)
     amount: float
     period: str = "monthly"  # weekly, monthly, yearly
 
 
 class CategoryGoalCreate(BaseModel):
-    user_id: int
+    # user_id is now obtained from JWT token (not sent in request body)
     category: str
     goal_amount: float
     period: str = "monthly"
@@ -49,13 +49,17 @@ class CategoryGoalResponse(BaseModel):
 
 
 @router.post("/", response_model=BudgetResponse)
-def create_budget(budget: BudgetCreate, db: Session = Depends(get_db)):
+def create_budget(
+    budget: BudgetCreate,
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id)
+):
     """
     Create or update overall budget
     """
     # Check if budget already exists for this user
     existing = db.query(Budget).filter(
-        Budget.user_id == budget.user_id,
+        Budget.user_id == current_user_id,
         Budget.period == BudgetPeriod(budget.period)
     ).first()
 
@@ -71,9 +75,9 @@ def create_budget(budget: BudgetCreate, db: Session = Depends(get_db)):
             import logging
             logger = logging.getLogger(__name__)
 
-            personal_context = PersonalContextService(db, budget.user_id)
+            personal_context = PersonalContextService(db, current_user_id)
             personal_context.vectorize_budget_context(existing)
-            logger.info(f"Auto-vectorized budget update for user {budget.user_id}")
+            logger.info(f"Auto-vectorized budget update for user {current_user_id}")
         except Exception as e:
             import logging
             logging.warning(f"Failed to auto-vectorize budget: {e}")
@@ -82,7 +86,7 @@ def create_budget(budget: BudgetCreate, db: Session = Depends(get_db)):
     else:
         # Create new budget
         new_budget = Budget(
-            user_id=budget.user_id,
+            user_id=current_user_id,
             amount=budget.amount,
             period=BudgetPeriod(budget.period)
         )
@@ -96,9 +100,9 @@ def create_budget(budget: BudgetCreate, db: Session = Depends(get_db)):
             import logging
             logger = logging.getLogger(__name__)
 
-            personal_context = PersonalContextService(db, budget.user_id)
+            personal_context = PersonalContextService(db, current_user_id)
             personal_context.vectorize_budget_context(new_budget)
-            logger.info(f"Auto-vectorized new budget for user {budget.user_id}")
+            logger.info(f"Auto-vectorized new budget for user {current_user_id}")
         except Exception as e:
             import logging
             logging.warning(f"Failed to auto-vectorize budget: {e}")
@@ -127,13 +131,17 @@ def get_user_budgets(
 
 
 @router.post("/category-goal", response_model=CategoryGoalResponse)
-def create_category_goal(goal: CategoryGoalCreate, db: Session = Depends(get_db)):
+def create_category_goal(
+    goal: CategoryGoalCreate,
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id)
+):
     """
     Create or update category spending goal
     """
     # Check if goal already exists for this category
     existing = db.query(CategoryGoal).filter(
-        CategoryGoal.user_id == goal.user_id,
+        CategoryGoal.user_id == current_user_id,
         CategoryGoal.category == goal.category,
         CategoryGoal.period == BudgetPeriod(goal.period)
     ).first()
@@ -151,9 +159,9 @@ def create_category_goal(goal: CategoryGoalCreate, db: Session = Depends(get_db)
             import logging
             logger = logging.getLogger(__name__)
 
-            personal_context = PersonalContextService(db, goal.user_id)
+            personal_context = PersonalContextService(db, current_user_id)
             personal_context.vectorize_budget_context(existing)
-            logger.info(f"Auto-vectorized category goal update for user {goal.user_id}")
+            logger.info(f"Auto-vectorized category goal update for user {current_user_id}")
         except Exception as e:
             import logging
             logging.warning(f"Failed to auto-vectorize category goal: {e}")
@@ -162,7 +170,7 @@ def create_category_goal(goal: CategoryGoalCreate, db: Session = Depends(get_db)
     else:
         # Create new goal
         new_goal = CategoryGoal(
-            user_id=goal.user_id,
+            user_id=current_user_id,
             category=goal.category,
             goal_amount=goal.goal_amount,
             period=BudgetPeriod(goal.period),
@@ -178,9 +186,9 @@ def create_category_goal(goal: CategoryGoalCreate, db: Session = Depends(get_db)
             import logging
             logger = logging.getLogger(__name__)
 
-            personal_context = PersonalContextService(db, goal.user_id)
+            personal_context = PersonalContextService(db, current_user_id)
             personal_context.vectorize_budget_context(new_goal)
-            logger.info(f"Auto-vectorized new category goal for user {goal.user_id}")
+            logger.info(f"Auto-vectorized new category goal for user {current_user_id}")
         except Exception as e:
             import logging
             logging.warning(f"Failed to auto-vectorize category goal: {e}")

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from config.database import get_db
 from models.recurring_expense import RecurringExpense, RecurrenceFrequency
+from middleware.auth import get_current_user_id
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timedelta
@@ -13,7 +14,7 @@ router = APIRouter(prefix="/recurring-expenses", tags=["recurring-expenses"])
 
 
 class RecurringExpenseCreate(BaseModel):
-    user_id: int
+    # user_id is now obtained from JWT token (not sent in request body)
     name: str
     amount: float
     category: str
@@ -41,11 +42,12 @@ class RecurringExpenseResponse(BaseModel):
 @router.post("/", response_model=RecurringExpenseResponse)
 def create_recurring_expense(
     expense: RecurringExpenseCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id)
 ):
     """Create a new recurring expense"""
     new_expense = RecurringExpense(
-        user_id=expense.user_id,
+        user_id=current_user_id,
         name=expense.name,
         amount=expense.amount,
         category=expense.category,

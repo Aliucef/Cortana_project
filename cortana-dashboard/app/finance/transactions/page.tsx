@@ -113,13 +113,15 @@ export default function TransactionsPage() {
         });
       } else {
         // Add new
-        await addFinanceRecord({
+        const newRecord = await addFinanceRecord({
           type: formData.type,
           amount: parseFloat(formData.amount),
           category: formData.category,
           description: formData.description,
-          date: new Date(formData.date).toISOString(),
+          date: formData.date,
         });
+
+        console.log("Transaction added successfully:", newRecord);
 
         setSuccessMessage({
           title: "Transaction Added",
@@ -140,10 +142,12 @@ export default function TransactionsPage() {
       });
       setShowAddModal(false);
       setEditingRecord(null);
-      loadData();
-    } catch (error) {
+
+      // Reload data to show the new transaction
+      await loadData();
+    } catch (error: any) {
       console.error("Failed to save transaction:", error);
-      alert("Failed to save transaction. Please try again.");
+      alert(`Failed to save transaction: ${error.message || 'Please try again.'}`);
     } finally {
       setSubmitting(false);
     }
@@ -520,16 +524,17 @@ export default function TransactionsPage() {
                 <label className={`block text-sm font-medium mb-2 ${
                   darkMode ? "text-gray-300" : "text-gray-700"
                 }`}>
-                  Description
+                  Description <span className="text-gray-500 text-xs">(Optional)</span>
                 </label>
                 <input
                   type="text"
+                  placeholder="e.g., Starbucks coffee, Gas for car..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     darkMode
-                      ? "bg-gray-700 border-gray-600 text-white"
-                      : "bg-white border-gray-300 text-gray-900"
+                      ? "bg-gray-700 border-gray-600 text-white placeholder-gray-500"
+                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                   }`}
                 />
               </div>

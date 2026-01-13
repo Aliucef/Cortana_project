@@ -146,15 +146,14 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     try {
       const [summaryData, recordsData, budgetData, goalsData, recurringData] = await Promise.all([
         getFinanceSummary(
-          userId,
           period,
           period === "custom" ? customStartDate : undefined,
           period === "custom" ? customEndDate : undefined
         ),
-        getFinanceRecords(userId),
-        getBudget(userId),
-        getCategoryGoals(userId),
-        getRecurringExpenses(userId),
+        getFinanceRecords(),
+        getBudget(),
+        getCategoryGoals(),
+        getRecurringExpenses(),
       ]);
       setSummary(summaryData);
       setRecords(recordsData);
