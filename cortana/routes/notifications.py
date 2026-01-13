@@ -37,7 +37,13 @@ class NotificationMarkRead(BaseModel):
     notification_ids: List[int]
 
 
-@router.get("/", response_model=List[NotificationResponse])
+class NotificationsListResponse(BaseModel):
+    notifications: List[NotificationResponse]
+    total: int
+    unread_count: int
+
+
+@router.get("/", response_model=NotificationsListResponse)
 def get_notifications(
     skip: int = 0,
     limit: int = 50,
@@ -51,8 +57,23 @@ def get_notifications(
     if unread_only:
         query = query.filter(Notification.is_read == False)
 
+    # Get total count (before pagination)
+    total = query.count()
+
+    # Get paginated notifications
     notifications = query.order_by(Notification.created_at.desc()).offset(skip).limit(limit).all()
-    return notifications
+
+    # Get unread count
+    unread_count = db.query(Notification).filter(
+        Notification.user_id == current_user.id,
+        Notification.is_read == False
+    ).count()
+
+    return {
+        "notifications": notifications,
+        "total": total,
+        "unread_count": unread_count
+    }
 
 
 @router.get("/unread-count")

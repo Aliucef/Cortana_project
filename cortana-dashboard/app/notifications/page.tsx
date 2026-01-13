@@ -73,11 +73,15 @@ export default function NotificationsPage() {
         notificationsPerPage,
         showUnreadOnly
       );
-      setNotifications(response.notifications);
-      setTotalNotifications(response.total);
-      setUnreadCount(response.unread_count);
+      setNotifications(response.notifications || []);
+      setTotalNotifications(response.total || 0);
+      setUnreadCount(response.unread_count || 0);
     } catch (error) {
       console.error("Failed to load notifications:", error);
+      // Set empty state on error
+      setNotifications([]);
+      setTotalNotifications(0);
+      setUnreadCount(0);
     } finally {
       setLoading(false);
     }
@@ -221,7 +225,7 @@ export default function NotificationsPage() {
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
             </div>
-          ) : notifications.length === 0 ? (
+          ) : !notifications || notifications.length === 0 ? (
             /* Empty State */
             <div
               className={`border rounded-xl p-12 text-center ${
@@ -254,7 +258,7 @@ export default function NotificationsPage() {
             /* Notifications List */
             <>
               <div className="space-y-3">
-                {notifications.map((notification) => (
+                {(notifications || []).map((notification) => (
                   <div
                     key={notification.id}
                     className={`border rounded-xl p-4 transition-colors ${

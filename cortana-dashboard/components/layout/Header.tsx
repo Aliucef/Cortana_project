@@ -42,9 +42,11 @@ export default function Header() {
     const fetchUnreadCount = async () => {
       try {
         const count = await getUnreadNotificationCount();
-        setUnreadCount(count);
+        setUnreadCount(count || 0);
       } catch (error) {
         console.error("Failed to fetch unread count:", error);
+        // Silently fail - don't show notification badge on error
+        setUnreadCount(0);
       }
     };
 
