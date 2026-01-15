@@ -163,7 +163,10 @@
       "Bash(do file=\"/mnt/d/Final-Project/cortana-dashboard/app/finance/$page/page.tsx\" echo \"=== $page ===\" grep -A10 \"const \\\\[darkMode\" \"$file\")",
       "Bash(for file in app/finance/budget-goals/page.tsx app/finance/dashboard/page.tsx app/finance/recurring/page.tsx app/finance/transactions/page.tsx app/health/create/page.tsx app/health/goals/page.tsx app/health/history/page.tsx app/health/progress/page.tsx app/health/rest/page.tsx)",
       "Bash(do sed -i 's/className=\"\"min-h-screen px-6\"\"/className=\"\"min-h-screen\"\"/g' \"$file\")",
-      "Bash(venv/Scripts/python.exe:*)"
+      "Bash(venv/Scripts/python.exe:*)",
+      "Bash(ping:*)",
+      "Bash(sudo apt update:*)",
+      "Bash(sudo apt install:*)"
     ],
     "deny": [],
     "ask": []

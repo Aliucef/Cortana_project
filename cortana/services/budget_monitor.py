@@ -18,7 +18,7 @@ class BudgetMonitor:
 
     def __init__(self, db: Session):
         self.db = db
-        self.notification_service = NotificationService()
+        # NotificationService removed - not used (Twilio integration disabled)
 
     def _get_period_dates(self, period: BudgetPeriod):
         """Get start and end dates for a budget period"""
@@ -194,8 +194,8 @@ class BudgetMonitor:
                 message += f"Remaining: ${budget - current:.2f}\n\n"
                 message += f"Careful with spending this month! 💸"
 
-        self.notification_service.send_whatsapp(message)
-        logger.info(f"Sent overspending alert to user {user_id}")
+        # Notification service disabled - just log the alert
+        logger.info(f"Budget alert for user {user_id}: {message[:100]}...")
 
     def check_after_transaction(self, user_id: int, category: str):
         """
