@@ -166,7 +166,10 @@
       "Bash(venv/Scripts/python.exe:*)",
       "Bash(ping:*)",
       "Bash(sudo apt update:*)",
-      "Bash(sudo apt install:*)"
+      "Bash(sudo apt install:*)",
+      "Bash(flutter --version:*)",
+      "Bash(flutter create:*)",
+      "Bash(/mnt/d/flutter_windows_3.29.3-stable/flutter/bin/flutter create:*)"
     ],
     "deny": [],
     "ask": []
