@@ -16,13 +16,15 @@ class ApiConstants {
   static const String addFinanceRecord = '/finance/';
   static String getUserFinanceRecords(int userId) => '/finance/user/$userId';
   static String getFinanceSummary(int userId) => '/finance/summary/$userId';
+  static String updateFinanceRecord(int recordId) => '/finance/$recordId';
   static String deleteFinanceRecord(int recordId) => '/finance/$recordId';
 
   // Budget Endpoints
   static const String createBudget = '/budget/';
   static String getBudget(int userId) => '/budget/$userId';
+  static String deleteBudget(int budgetId) => '/budget/$budgetId';
   static const String createCategoryGoal = '/budget/category-goal';
-  static String getCategoryGoals(int userId) => '/budget/category-goals/$userId';
+  static String getCategoryGoals(int userId) => '/budget/category-goal/$userId';
   static String updateCategoryGoal(int goalId) => '/budget/category-goal/$goalId';
   static String deleteCategoryGoal(int goalId) => '/budget/category-goal/$goalId';
 
@@ -47,7 +49,7 @@ class ApiConstants {
   static const String markAllRead = '/notifications/mark-all-read';
   static String deleteNotification(int notificationId) => '/notifications/$notificationId';
 
-  // Timeouts
-  static const Duration connectTimeout = Duration(seconds: 15);
-  static const Duration receiveTimeout = Duration(seconds: 15);
+  // Timeouts (increased to 60s to accommodate backend vectorization)
+  static const Duration connectTimeout = Duration(seconds: 30);
+  static const Duration receiveTimeout = Duration(seconds: 60);
 }

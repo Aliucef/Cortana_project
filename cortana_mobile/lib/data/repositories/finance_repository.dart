@@ -71,6 +71,27 @@ class FinanceRepository {
     return FinanceRecordModel.fromJson(response.data);
   }
 
+  // Update Finance Record
+  Future<FinanceRecordModel> updateFinanceRecord({
+    required int recordId,
+    required String type,
+    required double amount,
+    required String category,
+    String? description,
+  }) async {
+    final response = await _apiClient.put(
+      ApiConstants.updateFinanceRecord(recordId),
+      data: {
+        'transaction_type': type,
+        'amount': amount,
+        'category': category,
+        'description': description,
+        'transaction_date': DateTime.now().toIso8601String(),
+      },
+    );
+    return FinanceRecordModel.fromJson(response.data);
+  }
+
   // Delete Finance Record
   Future<void> deleteFinanceRecord(int recordId) async {
     await _apiClient.delete(
@@ -85,8 +106,16 @@ class FinanceRepository {
       final response = await _apiClient.get(
         ApiConstants.getBudget(userId),
       );
-      return BudgetModel.fromJson(response.data);
+
+      // Backend returns an array of budgets, get the first one
+      if (response.data is List && (response.data as List).isNotEmpty) {
+        return BudgetModel.fromJson((response.data as List).first);
+      }
+
+      // No budget set
+      return null;
     } catch (e) {
+      print('❌ Failed to get budget: $e');
       // No budget set - return null
       return null;
     }
@@ -105,6 +134,13 @@ class FinanceRepository {
       },
     );
     return BudgetModel.fromJson(response.data);
+  }
+
+  // Delete Budget
+  Future<void> deleteBudget(int budgetId) async {
+    await _apiClient.delete(
+      ApiConstants.deleteBudget(budgetId),
+    );
   }
 
   // Get Category Goals

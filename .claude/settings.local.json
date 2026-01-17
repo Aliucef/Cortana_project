@@ -171,7 +171,8 @@
       "Bash(flutter create:*)",
       "Bash(/mnt/d/flutter_windows_3.29.3-stable/flutter/bin/flutter create:*)",
       "Bash(dart run build_runner:*)",
-      "Bash(flutter pub run build_runner build:*)"
+      "Bash(flutter pub run build_runner build:*)",
+      "Bash(/usr/bin/flutter pub run build_runner build:*)"
     ],
     "deny": [],
     "ask": []

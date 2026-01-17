@@ -10,14 +10,14 @@ class BudgetModel {
   final double amount;
   final String period; // "weekly", "monthly", or "yearly"
   @JsonKey(name: 'created_at')
-  final String createdAt;
+  final String? createdAt;
 
   BudgetModel({
     required this.id,
     required this.userId,
     required this.amount,
     required this.period,
-    required this.createdAt,
+    this.createdAt,
   });
 
   factory BudgetModel.fromJson(Map<String, dynamic> json) =>
@@ -25,5 +25,6 @@ class BudgetModel {
 
   Map<String, dynamic> toJson() => _$BudgetModelToJson(this);
 
-  DateTime get createdDateTime => DateTime.parse(createdAt);
+  DateTime? get createdDateTime =>
+      createdAt != null ? DateTime.parse(createdAt!) : null;
 }

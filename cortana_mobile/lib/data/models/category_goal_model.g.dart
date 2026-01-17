@@ -14,7 +14,7 @@ CategoryGoalModel _$CategoryGoalModelFromJson(Map<String, dynamic> json) =>
       goalAmount: (json['goal_amount'] as num).toDouble(),
       period: json['period'] as String,
       alertThreshold: (json['alert_threshold'] as num).toDouble(),
-      createdAt: json['created_at'] as String,
+      createdAt: json['created_at'] as String?,
     );
 
 Map<String, dynamic> _$CategoryGoalModelToJson(CategoryGoalModel instance) =>

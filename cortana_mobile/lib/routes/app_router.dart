@@ -5,6 +5,9 @@ import '../presentation/screens/auth/signup_screen.dart';
 import '../presentation/screens/auth/auth_loading_screen.dart';
 import '../presentation/screens/dashboard/main_dashboard_screen.dart';
 import '../presentation/screens/finance/finance_dashboard_screen.dart';
+import '../presentation/screens/finance/budget_setting_screen.dart';
+import '../presentation/screens/finance/category_analytics_screen.dart';
+import '../presentation/screens/finance/category_goals_screen.dart';
 import '../presentation/screens/chat/chat_screen.dart';
 import '../presentation/screens/profile/profile_screen.dart';
 import '../presentation/providers/auth_provider.dart';
@@ -74,6 +77,18 @@ class AppRouter {
       GoRoute(
         path: '/finance',
         builder: (context, state) => const FinanceDashboardScreen(),
+      ),
+      GoRoute(
+        path: '/finance/budget-settings',
+        builder: (context, state) => const BudgetSettingScreen(),
+      ),
+      GoRoute(
+        path: '/finance/category-analytics',
+        builder: (context, state) => const CategoryAnalyticsScreen(),
+      ),
+      GoRoute(
+        path: '/finance/category-goals',
+        builder: (context, state) => const CategoryGoalsScreen(),
       ),
       GoRoute(
         path: '/chat',

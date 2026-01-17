@@ -14,7 +14,7 @@ class CategoryGoalModel {
   @JsonKey(name: 'alert_threshold')
   final double alertThreshold; // 0.0 to 1.0 (e.g., 0.8 = 80%)
   @JsonKey(name: 'created_at')
-  final String createdAt;
+  final String? createdAt;
 
   CategoryGoalModel({
     required this.id,
@@ -23,7 +23,7 @@ class CategoryGoalModel {
     required this.goalAmount,
     required this.period,
     required this.alertThreshold,
-    required this.createdAt,
+    this.createdAt,
   });
 
   factory CategoryGoalModel.fromJson(Map<String, dynamic> json) =>
@@ -31,7 +31,8 @@ class CategoryGoalModel {
 
   Map<String, dynamic> toJson() => _$CategoryGoalModelToJson(this);
 
-  DateTime get createdDateTime => DateTime.parse(createdAt);
+  DateTime? get createdDateTime =>
+      createdAt != null ? DateTime.parse(createdAt!) : null;
 
   // Helper to get threshold percentage
   int get thresholdPercentage => (alertThreshold * 100).round();

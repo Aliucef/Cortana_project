@@ -11,7 +11,7 @@ BudgetModel _$BudgetModelFromJson(Map<String, dynamic> json) => BudgetModel(
   userId: (json['user_id'] as num).toInt(),
   amount: (json['amount'] as num).toDouble(),
   period: json['period'] as String,
-  createdAt: json['created_at'] as String,
+  createdAt: json['created_at'] as String?,
 );
 
 Map<String, dynamic> _$BudgetModelToJson(BudgetModel instance) =>
