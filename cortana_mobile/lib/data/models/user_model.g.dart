@@ -13,7 +13,7 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
   fullName: json['full_name'] as String?,
   phoneNumber: json['phone_number'] as String?,
   telegramUserId: json['telegram_user_id'] as String?,
-  createdAt: json['created_at'] as String,
+  createdAt: json['created_at'] as String?,
   lastLogin: json['last_login'] as String?,
 );
 

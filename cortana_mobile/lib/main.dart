@@ -11,6 +11,7 @@ import 'data/repositories/chat_repository.dart';
 import 'data/repositories/user_repository.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/theme_provider.dart';
+import 'presentation/providers/finance_provider.dart';
 import 'routes/app_router.dart';
 
 void main() async {
@@ -84,10 +85,10 @@ class CortanaApp extends StatelessWidget {
           create: (_) => AuthProvider(authRepository, secureStorage),
         ),
 
-        // Additional providers will be added in later phases:
-        // - FinanceProvider
-        // - ChatProvider
-        // - etc.
+        // Finance Provider
+        ChangeNotifierProvider(
+          create: (_) => FinanceProvider(financeRepository),
+        ),
       ],
       child: Consumer2<ThemeProvider, AuthProvider>(
         builder: (context, themeProvider, authProvider, child) {

@@ -66,9 +66,9 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
 
     if (!mounted) return;
 
-    if (success) {
-      context.go('/home');
-    } else {
+    // On success, router will automatically redirect to home
+    // On failure, show error message
+    if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(authProvider.errorMessage ?? 'Signup failed'),

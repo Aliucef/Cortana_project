@@ -53,9 +53,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
     if (!mounted) return;
 
-    if (success) {
-      context.go('/home');
-    } else {
+    // On success, router will automatically redirect to home
+    // On failure, show error message
+    if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(authProvider.errorMessage ?? 'Login failed'),

@@ -14,7 +14,7 @@ class UserModel {
   @JsonKey(name: 'telegram_user_id')
   final String? telegramUserId;
   @JsonKey(name: 'created_at')
-  final String createdAt;
+  final String? createdAt;
   @JsonKey(name: 'last_login')
   final String? lastLogin;
 
@@ -25,7 +25,7 @@ class UserModel {
     this.fullName,
     this.phoneNumber,
     this.telegramUserId,
-    required this.createdAt,
+    this.createdAt,
     this.lastLogin,
   });
 
