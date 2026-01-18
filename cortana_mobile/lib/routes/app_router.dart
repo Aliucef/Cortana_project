@@ -10,6 +10,17 @@ import '../presentation/screens/finance/category_analytics_screen.dart';
 import '../presentation/screens/finance/category_goals_screen.dart';
 import '../presentation/screens/chat/chat_screen.dart';
 import '../presentation/screens/profile/profile_screen.dart';
+import '../presentation/screens/profile/edit_profile_screen.dart';
+import '../presentation/screens/profile/change_password_screen.dart';
+import '../presentation/screens/profile/telegram_integration_screen.dart';
+import '../presentation/screens/profile/notifications_screen.dart';
+import '../presentation/screens/profile/help_support_screen.dart';
+import '../presentation/screens/health/health_dashboard_screen.dart';
+import '../presentation/screens/health/gym_profile_setup_screen.dart';
+import '../presentation/screens/health/workouts_screen.dart';
+import '../presentation/screens/health/workout_detail_screen.dart';
+import '../presentation/screens/health/log_workout_screen.dart';
+import '../presentation/screens/health/log_weight_screen.dart';
 import '../presentation/providers/auth_provider.dart';
 
 class AppRouter {
@@ -97,6 +108,53 @@ class AppRouter {
       GoRoute(
         path: '/profile',
         builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/profile/edit',
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: '/profile/change-password',
+        builder: (context, state) => const ChangePasswordScreen(),
+      ),
+      GoRoute(
+        path: '/profile/telegram',
+        builder: (context, state) => const TelegramIntegrationScreen(),
+      ),
+      GoRoute(
+        path: '/profile/notifications',
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: '/profile/help',
+        builder: (context, state) => const HelpSupportScreen(),
+      ),
+      GoRoute(
+        path: '/health',
+        builder: (context, state) => const HealthDashboardScreen(),
+      ),
+      GoRoute(
+        path: '/health/setup-profile',
+        builder: (context, state) => const GymProfileSetupScreen(),
+      ),
+      GoRoute(
+        path: '/health/workouts',
+        builder: (context, state) => const WorkoutsScreen(),
+      ),
+      GoRoute(
+        path: '/health/workout/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return WorkoutDetailScreen(workoutId: id);
+        },
+      ),
+      GoRoute(
+        path: '/health/log-workout',
+        builder: (context, state) => const LogWorkoutScreen(),
+      ),
+      GoRoute(
+        path: '/health/log-weight',
+        builder: (context, state) => const LogWeightScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

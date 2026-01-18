@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/common/app_drawer.dart';
 import '../../widgets/common/glass_card.dart';
@@ -118,7 +119,7 @@ class ProfileScreen extends StatelessWidget {
                     icon: Icons.person_outline,
                     title: 'Edit Profile',
                     onTap: () {
-                      // TODO: Edit profile
+                      context.push('/profile/edit');
                     },
                   ),
                   const Divider(height: 1),
@@ -126,7 +127,7 @@ class ProfileScreen extends StatelessWidget {
                     icon: Icons.lock_outline,
                     title: 'Change Password',
                     onTap: () {
-                      // TODO: Change password
+                      context.push('/profile/change-password');
                     },
                   ),
                   const Divider(height: 1),
@@ -137,7 +138,7 @@ class ProfileScreen extends StatelessWidget {
                         ? 'Connected'
                         : 'Not connected',
                     onTap: () {
-                      // TODO: Telegram linking
+                      context.push('/profile/telegram');
                     },
                   ),
                 ],
@@ -159,25 +160,20 @@ class ProfileScreen extends StatelessWidget {
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
-                  _ProfileOption(
-                    icon: Icons.notifications_outlined,
-                    title: 'Notifications',
-                    onTap: () {
-                      // TODO: Notification settings
-                    },
-                  ),
-                  const Divider(height: 1),
-                  _ProfileOption(
-                    icon: Icons.dark_mode_outlined,
-                    title: 'Dark Mode',
-                    subtitle: 'Coming soon',
-                    onTap: () {},
-                  ),
+                  // _ProfileOption(
+                  //   icon: Icons.notifications_outlined,
+                  //   title: 'Notifications',
+                  //   onTap: () {
+                  //     context.push('/profile/notifications');
+                  //   },
+                  // ),
                   const Divider(height: 1),
                   _ProfileOption(
                     icon: Icons.help_outline,
                     title: 'Help & Support',
-                    onTap: () {},
+                    onTap: () {
+                      context.push('/profile/help');
+                    },
                   ),
                 ],
               ),

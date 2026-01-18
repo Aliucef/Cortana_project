@@ -8,22 +8,16 @@ part of 'chat_message_model.dart';
 
 ChatMessageModel _$ChatMessageModelFromJson(Map<String, dynamic> json) =>
     ChatMessageModel(
-      role: json['role'] as String,
-      content: json['content'] as String,
-      timestamp: json['timestamp'] as String,
-      sources:
-          (json['sources'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      suggestions:
-          (json['suggestions'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList(),
+      id: json['id'] as String,
+      message: json['message'] as String,
+      isUser: json['isUser'] as bool,
+      timestamp: DateTime.parse(json['timestamp'] as String),
     );
 
 Map<String, dynamic> _$ChatMessageModelToJson(ChatMessageModel instance) =>
     <String, dynamic>{
-      'role': instance.role,
-      'content': instance.content,
-      'timestamp': instance.timestamp,
-      'sources': instance.sources,
-      'suggestions': instance.suggestions,
+      'id': instance.id,
+      'message': instance.message,
+      'isUser': instance.isUser,
+      'timestamp': instance.timestamp.toIso8601String(),
     };

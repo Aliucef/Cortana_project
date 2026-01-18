@@ -1,5 +1,4 @@
 import '../datasources/remote/api_client.dart';
-import '../models/chat_response_model.dart';
 import '../../core/constants/api_constants.dart';
 
 class ChatRepository {
@@ -7,15 +6,25 @@ class ChatRepository {
 
   ChatRepository(this._apiClient);
 
-  // Send Chat Message
-  // Note: User ID is automatically extracted from JWT token by backend
-  Future<ChatResponseModel> sendChatMessage(String message) async {
-    final response = await _apiClient.post(
-      ApiConstants.chatEndpoint,
-      data: {
-        'message': message,
-      },
-    );
-    return ChatResponseModel.fromJson(response.data);
+  /// Send a message to Cortana AI and get response
+  Future<String> sendMessage(String message) async {
+    try {
+      final response = await _apiClient.post(
+        ApiConstants.chatEndpoint,
+        data: {
+          'message': message,
+        },
+      );
+
+      // Backend returns {"response": "AI response text"}
+      if (response.data != null && response.data['response'] != null) {
+        return response.data['response'] as String;
+      }
+
+      throw Exception('Invalid response format from server');
+    } catch (e) {
+      print('❌ Chat error: $e');
+      throw Exception('Failed to send message: ${e.toString()}');
+    }
   }
 }

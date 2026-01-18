@@ -116,6 +116,18 @@ class AppDrawer extends StatelessWidget {
                     },
                   ),
                   _DrawerItem(
+                    icon: Icons.fitness_center_outlined,
+                    selectedIcon: Icons.fitness_center,
+                    title: 'Health & Fitness',
+                    isSelected: currentRoute == '/health',
+                    onTap: () {
+                      Navigator.pop(context);
+                      if (currentRoute != '/health') {
+                        context.go('/health');
+                      }
+                    },
+                  ),
+                  _DrawerItem(
                     icon: Icons.chat_outlined,
                     selectedIcon: Icons.chat,
                     title: 'AI Chat',

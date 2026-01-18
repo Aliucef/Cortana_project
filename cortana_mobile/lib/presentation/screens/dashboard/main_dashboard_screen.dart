@@ -261,6 +261,17 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: _ActionButton(
+                            icon: Icons.fitness_center_rounded,
+                            label: 'Workout',
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                            ),
+                            onTap: () => context.go('/health'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _ActionButton(
                             icon: Icons.chat_bubble_rounded,
                             label: 'Ask AI',
                             gradient: const LinearGradient(

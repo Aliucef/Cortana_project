@@ -9,9 +9,13 @@ import 'data/repositories/auth_repository.dart';
 import 'data/repositories/finance_repository.dart';
 import 'data/repositories/chat_repository.dart';
 import 'data/repositories/user_repository.dart';
+import 'data/repositories/health_repository.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/theme_provider.dart';
 import 'presentation/providers/finance_provider.dart';
+import 'presentation/providers/chat_provider.dart';
+import 'presentation/providers/user_provider.dart';
+import 'presentation/providers/health_provider.dart';
 import 'routes/app_router.dart';
 
 void main() async {
@@ -34,6 +38,7 @@ void main() async {
   final financeRepository = FinanceRepository(apiClient, secureStorage);
   final chatRepository = ChatRepository(apiClient);
   final userRepository = UserRepository(apiClient, secureStorage);
+  final healthRepository = HealthRepository(apiClient, secureStorage);
 
   runApp(
     CortanaApp(
@@ -45,6 +50,7 @@ void main() async {
       financeRepository: financeRepository,
       chatRepository: chatRepository,
       userRepository: userRepository,
+      healthRepository: healthRepository,
     ),
   );
 }
@@ -58,6 +64,7 @@ class CortanaApp extends StatelessWidget {
   final FinanceRepository financeRepository;
   final ChatRepository chatRepository;
   final UserRepository userRepository;
+  final HealthRepository healthRepository;
 
   const CortanaApp({
     super.key,
@@ -69,6 +76,7 @@ class CortanaApp extends StatelessWidget {
     required this.financeRepository,
     required this.chatRepository,
     required this.userRepository,
+    required this.healthRepository,
   });
 
   @override
@@ -88,6 +96,21 @@ class CortanaApp extends StatelessWidget {
         // Finance Provider
         ChangeNotifierProvider(
           create: (_) => FinanceProvider(financeRepository),
+        ),
+
+        // Chat Provider
+        ChangeNotifierProvider(
+          create: (_) => ChatProvider(chatRepository),
+        ),
+
+        // User Provider
+        ChangeNotifierProvider(
+          create: (_) => UserProvider(userRepository),
+        ),
+
+        // Health Provider
+        ChangeNotifierProvider(
+          create: (_) => HealthProvider(healthRepository),
         ),
       ],
       child: Consumer2<ThemeProvider, AuthProvider>(

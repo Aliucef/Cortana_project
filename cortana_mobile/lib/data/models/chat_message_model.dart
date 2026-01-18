@@ -4,18 +4,16 @@ part 'chat_message_model.g.dart';
 
 @JsonSerializable()
 class ChatMessageModel {
-  final String role; // "user" or "assistant"
-  final String content;
-  final String timestamp; // ISO 8601 string
-  final List<String>? sources;
-  final List<String>? suggestions;
+  final String id;
+  final String message;
+  final bool isUser;
+  final DateTime timestamp;
 
   ChatMessageModel({
-    required this.role,
-    required this.content,
+    required this.id,
+    required this.message,
+    required this.isUser,
     required this.timestamp,
-    this.sources,
-    this.suggestions,
   });
 
   factory ChatMessageModel.fromJson(Map<String, dynamic> json) =>
@@ -23,32 +21,23 @@ class ChatMessageModel {
 
   Map<String, dynamic> toJson() => _$ChatMessageModelToJson(this);
 
-  bool get isUser => role == 'user';
-  bool get isAssistant => role == 'assistant';
-
-  DateTime get timestampDateTime => DateTime.parse(timestamp);
-
-  // Factory constructor for creating a user message
-  factory ChatMessageModel.userMessage(String content) {
+  // Create a user message
+  factory ChatMessageModel.user(String message) {
     return ChatMessageModel(
-      role: 'user',
-      content: content,
-      timestamp: DateTime.now().toIso8601String(),
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      message: message,
+      isUser: true,
+      timestamp: DateTime.now(),
     );
   }
 
-  // Factory constructor for creating an assistant message
-  factory ChatMessageModel.assistantMessage(
-    String content, {
-    List<String>? sources,
-    List<String>? suggestions,
-  }) {
+  // Create an AI response message
+  factory ChatMessageModel.ai(String response) {
     return ChatMessageModel(
-      role: 'assistant',
-      content: content,
-      timestamp: DateTime.now().toIso8601String(),
-      sources: sources,
-      suggestions: suggestions,
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      message: response,
+      isUser: false,
+      timestamp: DateTime.now(),
     );
   }
 }

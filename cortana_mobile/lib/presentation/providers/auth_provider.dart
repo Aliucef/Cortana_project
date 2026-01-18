@@ -115,4 +115,17 @@ class AuthProvider with ChangeNotifier {
     _currentUser = user;
     notifyListeners();
   }
+
+  // Refresh user profile from server
+  Future<void> refreshUserProfile() async {
+    try {
+      final userData = await _secureStorage.getCurrentUser();
+      if (userData != null) {
+        _currentUser = UserModel.fromJson(userData);
+        notifyListeners();
+      }
+    } catch (e) {
+      print('❌ Failed to refresh user profile: $e');
+    }
+  }
 }
