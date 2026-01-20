@@ -175,7 +175,9 @@
       "Bash(/usr/bin/flutter pub run build_runner build:*)",
       "Bash(/mnt/d/flutter_windows_3.29.3-stable/flutter/bin/flutter pub run build_runner build:*)",
       "Bash(flutter analyze:*)",
-      "Bash(flutter pub get:*)"
+      "Bash(flutter pub get:*)",
+      "Bash(apt-get update:*)",
+      "Bash(apt-get install:*)"
     ],
     "deny": [],
     "ask": []
