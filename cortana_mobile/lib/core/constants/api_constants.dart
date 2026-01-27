@@ -1,6 +1,6 @@
 class ApiConstants {
   // Base URL - Windows IP address for backend access from emulator
-  static const String baseUrl = 'http://192.168.0.117:8000';
+  static const String baseUrl = 'http://192.168.0.126:8000';
 
   // Auth Endpoints
   static const String login = '/auth/login';

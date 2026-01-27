@@ -1086,14 +1086,13 @@ class _AddTransactionFormState extends State<_AddTransactionForm> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final categories =
-        _type == 'expense' ? _expenseCategories : _incomeCategories;
-
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Form(
-        key: _formKey,
+Widget build(BuildContext context) {
+  final categories = _type == 'expense' ? _expenseCategories : _incomeCategories;
+  return Padding(
+    padding: const EdgeInsets.all(20),
+    child: Form(
+      key: _formKey,
+      child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1117,7 +1116,6 @@ class _AddTransactionFormState extends State<_AddTransactionForm> {
               ],
             ),
             const SizedBox(height: 20),
-
             // Type Selector
             Row(
               children: [
@@ -1146,8 +1144,7 @@ class _AddTransactionFormState extends State<_AddTransactionForm> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-
+            const SizedBox(height: 13),
             // Amount Field
             TextFormField(
               controller: _amountController,
@@ -1169,9 +1166,8 @@ class _AddTransactionFormState extends State<_AddTransactionForm> {
               },
             ),
             const SizedBox(height: 16),
-
             // Category Dropdown
-            DropdownButtonFormField<String>(
+            DropdownButtonFormField(
               value: _category,
               decoration: const InputDecoration(
                 labelText: 'Category',
@@ -1189,7 +1185,6 @@ class _AddTransactionFormState extends State<_AddTransactionForm> {
               },
             ),
             const SizedBox(height: 16),
-
             // Description Field
             TextFormField(
               controller: _descriptionController,
@@ -1201,7 +1196,6 @@ class _AddTransactionFormState extends State<_AddTransactionForm> {
               maxLines: 2,
             ),
             const SizedBox(height: 24),
-
             // Submit Button
             ElevatedButton(
               onPressed: _handleSubmit,
@@ -1219,12 +1213,13 @@ class _AddTransactionFormState extends State<_AddTransactionForm> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 20),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _EditTransactionForm extends StatefulWidget {

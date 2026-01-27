@@ -177,7 +177,10 @@
       "Bash(flutter analyze:*)",
       "Bash(flutter pub get:*)",
       "Bash(apt-get update:*)",
-      "Bash(apt-get install:*)"
+      "Bash(apt-get install:*)",
+      "Bash(flutter doctor:*)",
+      "Bash(/usr/bin/flutter doctor:*)",
+      "Bash(bash -c \"source venv/bin/activate && timeout 15 python main.py 2>&1\")"
     ],
     "deny": [],
     "ask": []
