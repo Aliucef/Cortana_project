@@ -203,8 +203,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                             value: CurrencyFormatter.format(
                                 financeProvider.weeklyIncome),
                             color: const Color(0xFF10B981),
-                            trend: '+12%',
-                            isPositive: true,
                             onTap: () => context.go('/finance'),
                           ),
                         ),
@@ -216,8 +214,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                             value: CurrencyFormatter.format(
                                 financeProvider.weeklyExpenses),
                             color: const Color(0xFFEF4444),
-                            trend: '-5%',
-                            isPositive: true,
                             onTap: () => context.go('/finance'),
                           ),
                         ),
@@ -413,8 +409,6 @@ class _ModernStatCard extends StatelessWidget {
   final String title;
   final String value;
   final Color color;
-  final String trend;
-  final bool isPositive;
   final VoidCallback onTap;
 
   const _ModernStatCard({
@@ -422,8 +416,6 @@ class _ModernStatCard extends StatelessWidget {
     required this.title,
     required this.value,
     required this.color,
-    required this.trend,
-    required this.isPositive,
     required this.onTap,
   });
 
@@ -448,49 +440,13 @@ class _ModernStatCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, color: color, size: 24),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isPositive
-                        ? const Color(0xFF10B981).withOpacity(0.1)
-                        : const Color(0xFFEF4444).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        isPositive ? Icons.arrow_upward : Icons.arrow_downward,
-                        color: isPositive
-                            ? const Color(0xFF10B981)
-                            : const Color(0xFFEF4444),
-                        size: 12,
-                      ),
-                      const SizedBox(width: 2),
-                      Text(
-                        trend,
-                        style: TextStyle(
-                          color: isPositive
-                              ? const Color(0xFF10B981)
-                              : const Color(0xFFEF4444),
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(height: 12),
             Text(

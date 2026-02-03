@@ -74,14 +74,31 @@ class HealthRepository {
         'equipment_access': equipmentAccess,
         'training_split': trainingSplit,
         'preferred_time': preferredTime,
-        if (injuriesNotes != null) 'injuries_notes': injuriesNotes,
+        if (injuriesNotes != null && injuriesNotes.isNotEmpty) 'injuries_notes': injuriesNotes,
       },
     );
 
     print('📥 Create profile response: ${response.data}');
     print('📥 Response type: ${response.data.runtimeType}');
 
-    return GymProfileModel.fromJson(response.data);
+    try {
+      if (response.data == null) {
+        throw Exception('Response data is null');
+      }
+
+      if (response.data is! Map) {
+        throw Exception('Response is not a Map, got: ${response.data.runtimeType}');
+      }
+
+      final Map<String, dynamic> jsonData = response.data as Map<String, dynamic>;
+      print('📥 JSON keys: ${jsonData.keys.toList()}');
+
+      return GymProfileModel.fromJson(jsonData);
+    } catch (e) {
+      print('❌ Error parsing gym profile: $e');
+      print('❌ Response data: ${response.data}');
+      throw Exception('Failed to parse gym profile: $e');
+    }
   }
 
   // ==================== Workout Plans ====================
