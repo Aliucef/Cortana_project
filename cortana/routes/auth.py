@@ -17,7 +17,7 @@ security = HTTPBearer()
 # JWT settings
 SECRET_KEY = "your-secret-key-change-this-in-production"  # TODO: Move to settings
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 
 
 class LoginRequest(BaseModel):
